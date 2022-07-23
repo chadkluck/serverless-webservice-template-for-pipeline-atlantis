@@ -1,0 +1,13 @@
+{
+	"name": "demo-template",
+	"version": "0.0.1",
+	"description": "Serverless Demo Template",
+	"main": "index.js",
+	"repository": "",
+	"author": "University of St. Thomas Libraries - Chad Kluck",
+	"license": "MIT",
+	"scripts": {},
+	"dependencies": {
+		"@chadkluck/cache-data": "^1.0.11"
+	}
+}

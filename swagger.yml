@@ -1,0 +1,81 @@
+openapi: '3.0.0'
+info:
+  title: "Demo Template"
+  description: "A template for serverless applications."
+  version: "0.1"
+  contact:
+    name: "Your Name"
+    url: "https://example.com"
+    email: "contact@example.com"
+  license:
+    name: "CC Attribution-ShareAlike 4.0 (CC BY-SA 4.0)"
+    url: "https://example.com"
+paths: 
+  /:
+    get:
+      description: "GET or POST may be used. The request and response is the same."
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: "Response OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseObject'
+        '304':
+          description: "Not Modified"
+        '403':
+          description: Not Authorized. IP or Referer not authorized.
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/403'
+      x-amazon-apigateway-integration:
+        httpMethod: post
+        type: aws_proxy
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AppFunction.Arn}/invocations
+    post:
+      description: "GET or POST may be used. The request and response is the same."
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: "Response OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseObject'
+        '304':
+          description: "Not Modified"
+        '403':
+          description: Not Authorized. IP or Referer not authorized.
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/403'
+      x-amazon-apigateway-integration:
+        httpMethod: post
+        type: aws_proxy
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AppFunction.Arn}/invocations
+
+components:
+  parameters:
+    id:
+      name: id
+      in: query
+      description: "Just a random ID that isn't necessary"
+      schema:
+        type: string
+
+  schemas:
+    '403':
+      title: Not authorized
+      type: string
+
+    ResponseObject:
+      title: A response object
+      description: "A response object containing data"
+      type: object

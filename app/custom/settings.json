@@ -1,0 +1,17 @@
+{
+	"settings": {
+		"timeZoneForCacheInterval": "America/Chicago",
+		"language": "en-us",
+		"weather": {
+			"q": "Chicago",
+			"units": "imperial"
+		}
+	},
+	"policies": {
+		"max": 10
+	},
+	"referers": [
+		"chadkluck.net",
+		"aws.amazon.com"
+	]
+}

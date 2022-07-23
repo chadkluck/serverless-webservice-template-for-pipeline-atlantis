@@ -1,0 +1,15 @@
+{
+  "Parameters": {
+    "UserAgent": "Web Service",
+    "ApiPathBase": "demo-$DEPLOY_STAGE$"
+  },
+  "Tags":
+  {
+    "ProjectStackType": "projectstack",
+    "CodeCommitRepo": "$PROJECT_ID$",
+    "ProjectStackProjectID": "aws/$AWS_REGION$/$ACCOUNT_ID$/$PROJECT_ID$",
+    "ProjectStackProjectStageID": "aws/$AWS_REGION$/$ACCOUNT_ID$/$PROJECT_STAGE_ID$",
+    "stage": "$DEPLOY_STAGE$",
+    "env": "$DEPLOY_ENVIRONMENT$"
+  }
+}
