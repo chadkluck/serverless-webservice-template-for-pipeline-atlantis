@@ -1058,14 +1058,14 @@ Add the following before Environment:
       Tracing: Active # X-Ray
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:21" 
-		# Check for latest version: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Lambda-Insights-extension-versionsx86-64.html
+        # Check for latest version: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Lambda-Insights-extension-versionsx86-64.html
 ```
 
 You'll need to check the latest version link to verify that the version (21 in this case) is available in your region. (Also be sure to double check the account number)
 
 Next, you'll need to add permission to the Lambda Execution Role.
 
-Between AssumeRolePolicyDocument and Policies, add:
+Between `AssumeRolePolicyDocument` and `Policies`, add:
 
 ```yaml
       # These are for application monitoring
@@ -1101,6 +1101,17 @@ That's it! Commit your changes to the branch you updated the CloudFormation pipe
 As we wait for it to deploy I'll mention that we only changed one deploy pipeline. If you have multiple deploy pipelines you'll need to go through the web console and change each. Also note that you are able to change the parameter settings the same way.
 
 Once the application has deployed go ahead and run a few tests by accessing the endpoint in the browser like you did before. (There should be an endpoint test link available in your application infrastructure CloudFormation stack Output section.)
+
+For variety you can try the same cities as before or add your own:
+
+```
+?q=Chicago
+?q=Denver
+?q=Seattle
+?q=Miami
+?q=Denver
+?q=Colorado+Springs
+```
 
 After a few tests, go to your Lambda application in the web console and go to the monitoring section. There you will find buttons for Insights and X-Ray. First go into Insights and notice the charts available such as CPU utilization and error rates.
 
