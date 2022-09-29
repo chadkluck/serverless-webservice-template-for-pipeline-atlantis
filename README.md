@@ -953,7 +953,179 @@ It is recommended you familiarize yourself with the following files:
 - app/classes.js
 - app/index.js
 
-And these files from npm @chadkluck/cache-data on GitHub:
+And these files from [npm @chadkluck/cache-data source GitHub](https://github.com/chadkluck/npm-chadkluck-cache-data):
 
-- asdf
-- asdf
+- src/lib/
+  - dao-cache.js
+  - dao-endpoint.js
+  - tools.js
+
+### Bonus
+
+For this bonus tutorial we will update the CloudFormation template for the CI/CD pipeline. We will then add additional insights such as AWS X-Ray and Lambda Insights which can assist you in troubleshooting and viewing issues as they arise.
+
+Before diving into these next steps, read through the information on [X-Ray](https://aws.amazon.com/xray/) and Lambda Insights(https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Lambda-Insights.html). Note that there may be costs associated with them, and you can remove them from your application's template once you have completed this bonus exercise.
+
+Did you read through some of the information on X-Ray and Lambda Insights? Are you ready to see them in action?
+
+#### Modify the CI/CD Pipeline in CloudFormation
+
+First, we need to grant our application's CloudFormation template the ability to add a Lambda Layer for Lambda Insights when it deploys. Since permissions for what resources our CloudFormation application infrastructure stack can create are in turn given by the CloudFormation deploy pipeline stack, we need to modify the deploy pipeline to grant those permissions.
+
+Go into CloudFormation via Web Console and find the deploy stack for your application (yourapplication-test-deploy). If you have multiple deployments, choose one to test with, but not a PROD environment one as it won't deploy All At Once like a development or test branch would.
+
+Once you click on it, go to the Template tab.
+
+This is the template that was loaded as the toolchain to create your deploy stack. Because it doesn't deploy via it's own pipeline like our application does, we need to modify the existing template, or upload a new one. (If we had a pipeline to deploy a pipeline, it would just be turtles all the way down!)
+
+Luckily we can update the template through the web console by clicking on the Update button in the upper right.
+
+Choose "Edit template in designer" and then "View in Designer"
+
+You'll notice a graphical schematic that tries its best to reprsent the structure of the CloudFormation stack. Below it is the template in YAML which you can edit.
+
+Scroll down to `CloudFormationTrustRole` and around line 284 under the `CloudFormationRolePolicy` statements you will find the permissions to create lambda and dynamodb resources.
+
+```yaml
+          - Action:
+            - lambda:*
+            Effect: Allow
+            Resource:
+            - !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Prefix}-${ProjectStageId}-*'
+            
+          - Action:
+            - dynamodb:*
+            Effect: Allow
+            Resource:
+              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Prefix}-${ProjectStageId}-*'
+```
+
+Insert the following between the two Actions (make sure you keep the proper indents since YAML relies on it!):
+
+```yaml
+
+          - Action:
+            - lambda:GetLayerVersion
+            Effect: Allow
+            Resource:
+            - 'arn:aws:lambda:us-east-1:580247275435:layer:LambdaInsightsExtension:*'
+```
+
+You should now have the following which grants your application infrastructure stack the ability to get a Lambda Layer version:
+
+```yaml
+          - Action:
+            - lambda:*
+            Effect: Allow
+            Resource:
+            - !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Prefix}-${ProjectStageId}-*'
+
+          - Action:
+            - lambda:GetLayerVersion
+            Effect: Allow
+            Resource:
+            - 'arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:*'
+
+          - Action:
+            - dynamodb:*
+            Effect: Allow
+            Resource:
+              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Prefix}-${ProjectStageId}-*'
+```
+
+But wait! What is that AWS account ID? It's not yours!
+
+That's okay, and if you want to verify that it is okay, you can check out [AWS's own documentation](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Lambda-Insights-extension-versionsx86-64.html). It is okay because it is a Lambda Layer provided by AWS and that account number is theirs. That's the cool (and scary if not used right) thing about AWS permissions, you can provide access to resources on your account to others. You can be restrictive and only allow certain accounts, and certain applications on certain accounts, access to resources, or you can be openly permissive and provide public access to resources you want publicly accessible. Like zipped, publicly available code files on S3.
+
+Note: Check the account number for your region. While 580... is the number used in most regions, it will differ in some regions outside the U.S. You can use the documentation link provided in the previous paragraph.
+
+Next, click on the Cloud icon (Create stack) in the upper left corner to save your changes.
+
+You will be shown through several screens asking if you want to change any parameters. We won't at this time, but go ahead and read them as you click through to the end and don't forget to check the box before the final save. 
+
+The stack will reform and we are now set to update our application.
+
+However, before we modify our application, I just wanted to let you know that this is how you can add permissions for your CloudFormation application infrastructure stack to create additional resources beyond S3, DynamoDb, CloudWatch dashboards, and Lambda. You just need to add the proper policy statement to the `CloudFormationRolePolicy`.
+
+#### Modify your Application template.yml
+
+Go to template.yml for your application and scroll down to the Lamda configuration.
+
+Add the following before Environment:
+
+```yaml
+      # Lambda Insights and X-Ray
+      Tracing: Active # X-Ray
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:21" 
+		# Check for latest version: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Lambda-Insights-extension-versionsx86-64.html
+```
+
+You'll need to check the latest version link to verify that the version (21 in this case) is available in your region. (Also be sure to double check the account number)
+
+Next, you'll need to add permission to the Lambda Execution Role.
+
+Between AssumeRolePolicyDocument and Policies, add:
+
+```yaml
+      # These are for application monitoring
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy'
+        - 'arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess'
+```
+
+You should now see something like:
+
+```yaml
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: [lambda.amazonaws.com]
+          Action: sts:AssumeRole
+
+      # These are for application monitoring
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy'
+        - 'arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess'
+
+      # These are the resources your Lambda function needs access to
+      # Logs, SSM Parameters, DynamoDb, S3, etc.
+      # Define specific actions such as get/put (read/write)
+      Policies:
+      - PolicyName: LambdaResourceAccessPolicies
+```
+
+That's it! Commit your changes to the branch you updated the CloudFormation pipeline stack for.
+
+As we wait for it to deploy I'll mention that we only changed one deploy pipeline. If you have multiple deploy pipelines you'll need to go through the web console and change each. Also note that you are able to change the parameter settings the same way.
+
+Once the application has deployed go ahead and run a few tests by accessing the endpoint in the browser like you did before. (There should be an endpoint test link available in your application infrastructure CloudFormation stack Output section.)
+
+After a few tests, go to your Lambda application in the web console and go to the monitoring section. There you will find buttons for Insights and X-Ray. First go into Insights and notice the charts available such as CPU utilization and error rates.
+
+Go back to the Monitoring tab on your lambda function and click on the X-Ray button. 
+
+X-Ray takes samples of your application invocations so not every one will be listed, but you should be able to gain insight into how your application handles requests.
+
+Exploring how to use X-Ray and Insights is beyond this tutorial, but use the links provided earlier.
+
+If you wish to remove X-Ray and Lambda Insights from your application, go into your template.yml file and comment out (or delete) the lines we added:
+
+```yaml
+#      Tracing: Active # X-Ray
+#      Layers:
+#        - !Sub "arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:21" 
+```
+
+And the policy:
+
+```yaml
+#      ManagedPolicyArns:
+#        - 'arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy'
+#        - 'arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess'
+```
+
+You may also go back to the deploy pipeline stack and remove the permissions to access the layer version, but if this is not a real production application then it is unnessary.
+
+I hope this bonus section gave you insight on how to modify your deploy pipeline stack and introduce you to X-Ray and Lambda Insights to help you monitor your application!
