@@ -1,4 +1,4 @@
-# Demo Template Web Service
+# Serverless Webservice Template for Pipeline Atlantis
 
 A Web Service template for a serverless Node.js application using AWS Lambda and API Gateway that provides access to external remote api endpoints, caching using AWS DynamoDb, and S3, and stored secrets utilizing SSM Parameter Store.
 
