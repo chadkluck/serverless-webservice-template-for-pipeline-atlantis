@@ -696,7 +696,7 @@ Resources:
                     "x": 0,
                     "type": "log",
                     "properties": {
-                        "query": "SOURCE '/aws/lambda/${AppFunction}' | fields @timestamp as ts, @message, @logStream as logStream\n| sort ts desc\n| limit 500\n| PARSE @message \"[*] *\" as loggingType, loggingMessage\n| FILTER (loggingType = \"ERROR\" or loggingType = \"WARN\")\n| DISPLAY ts, logStream, loggingType, loggingMessage",
+                        "query": "SOURCE '/aws/lambda/${AppFunction}' | fields @timestamp as ts, @requestId, @message, @logStream as logStream\n| sort ts desc\n| limit 500\n| PARSE @message \"[*] *\" as loggingType, loggingMessage\n| FILTER (loggingType = \"ERROR\" or loggingType = \"WARN\" or @message like \"Task timed out\")\n| DISPLAY ts, logStream, loggingType, loggingMessage",
                         "region": "${AWS::Region}",
                         "stacked": false,
                         "title": "Error and Warning Log",
