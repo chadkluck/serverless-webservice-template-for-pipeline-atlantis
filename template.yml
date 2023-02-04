@@ -490,6 +490,25 @@ Resources:
             NoncurrentVersionExpirationInDays: !Ref PurgeAgeOfCachedBucketObjInDays
             Status: "Enabled" # Enable only if you are going to use this LifecycleConfiguration
 
+  # -- S3 Bucket Policy for Lambda App Data Storage --
+  AppDataS3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AppDataS3Bucket
+      PolicyDocument:
+        Statement:
+              - Sid: "DenyNonSecureTransportAccess"
+                Effect: Deny
+                Principal: "*"
+                Action: "s3:*"
+                Resource:
+                  - !GetAtt AppDataS3Bucket.Arn
+                  - !Join [ '', [ !GetAtt AppDataS3Bucket.Arn, '/*' ] ]
+                Condition:
+                  Bool:
+                    "aws:SecureTransport": false
+
+
   # ---------------------------------------------------------------------------
   # Monitoring
 
