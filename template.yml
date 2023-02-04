@@ -247,6 +247,9 @@ Globals:
         #- !If [IsProduction, !Ref AppFunctionErrorsAlarm, !Ref AWS::NoValue]  # how do we do a novalue for a list?
         - !Ref AppFunctionErrorsAlarm
 
+  Api:
+    OpenApiVersion: 3.0.0 # Prevents extra stage called Stage in API Gateway https://www.internetkatta.com/how-to-prevent-aws-sam-from-creating-the-default-stage-in-api-gateway-stage
+
 # =============================================================================
 # RESOURCES
 # -----------------------------------------------------------------------------
