@@ -8,6 +8,6 @@
 	"license": "MIT",
 	"scripts": {},
 	"dependencies": {
-		"@chadkluck/cache-data": "^1.0.17"
+		"@chadkluck/cache-data": "^1.0.18"
 	}
 }
