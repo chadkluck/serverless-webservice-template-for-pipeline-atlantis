@@ -443,7 +443,7 @@ Resources:
         LogGroupName: !Sub '/aws/lambda/${Prefix}-${ProjectStageId}-AppFunction' # Avoid circular reference !Sub "/aws/lambda/${AppFunction}"
         RetentionInDays: !If [ IsProduction, !Ref LogRetentionInDaysForPROD,  !Ref LogRetentionInDaysForDEVTEST]
 
-  # -- DynamoDb for Lambda App Data Storage --
+  # -- DynamoDb for Lambda Cache Data Storage --
   AppDataDynamoDbTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -462,6 +462,32 @@ Resources:
         Enabled: true # TODO: set to true if you want to enable TTL
       SSESpecification:
         SSEEnabled: true
+
+  # -- DynamoDb Auto Scaling
+  # See https://aws.amazon.com/blogs/database/how-to-use-aws-cloudformation-to-configure-auto-scaling-for-amazon-dynamodb-tables-and-indexes/
+  UserTableWriteCapacityScalableTarget: 
+    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
+    DependsOn: AppDataDynamoDbTable
+    Properties: 
+      MaxCapacity: 100
+      MinCapacity: 5
+      ResourceId: !Sub table/${AppDataDynamoDbTable}
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/dynamodb.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_DynamoDBTable
+      ScalableDimension: "dynamodb:table:WriteCapacityUnits"
+      ServiceNamespace: dynamodb
+
+  UserTableWriteScalingPolicy: 
+    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
+    Properties: 
+      PolicyName: WriteAutoScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref: UserTableWriteCapacityScalableTarget
+      TargetTrackingScalingPolicyConfiguration: 
+        TargetValue: 80
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+        PredefinedMetricSpecification: 
+          PredefinedMetricType: DynamoDBWriteCapacityUtilization
 
   # -- S3 Bucket for Lambda App Data Storage --
   AppDataS3Bucket:
