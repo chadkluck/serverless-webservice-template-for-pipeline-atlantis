@@ -1,4 +1,17 @@
-AWSTemplateFormatVersion: 2010-09-09
+# This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, 
+# either express or implied. See the License for the specific language governing permissions 
+# and limitations under the License.
+#
+# Web Service CloudFormation Application Infrastructure Template
+# https://github.com/chadkluck/serverless-webservice-template-for-pipeline-atlantis
+# Chad Leigh Kluck
+# v2.2023-07-22 HPAD (Happy Pi Approximation Day!)
+# 
+# NOTE: As of v2 this template no longer supports CodeStar. I just wasn't using it and including
+# it complicated the set-up and learning process. Parameters have also been refactored and the
+# resources and parameters used by the npm package Cache-Data have been called out.
+
+AWSTemplateFormatVersion: "2010-09-09"
 
 Transform:
 - AWS::Serverless-2016-10-31
@@ -59,6 +72,7 @@ Metadata:
           - CacheData_ErrorExpirationInSeconds
           - CacheData_PurgeExpiredCacheEntriesInHours
           - CacheData_PurgeAgeOfCachedBucketObjInDays
+          - CacheData_TimeZoneForInterval
 
 # =============================================================================
 # PARAMETERS
