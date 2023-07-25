@@ -66,13 +66,13 @@ Metadata:
         Label:
           default: "Cache-Data Parameters"
         Parameters:
-          - CacheData_DbMaxCacheSizeInKB
-          - CacheData_CryptIdHashAlgorithm
-          - CacheData_CryptSecureDataAlg
-          - CacheData_ErrorExpirationInSeconds
-          - CacheData_PurgeExpiredCacheEntriesInHours
-          - CacheData_PurgeAgeOfCachedBucketObjInDays
-          - CacheData_TimeZoneForInterval
+          - CacheDataDbMaxCacheSizeInKB
+          - CacheDataCryptIdHashAlgorithm
+          - CacheDataCryptSecureDataAlg
+          - CacheDataErrorExpirationInSeconds
+          - CacheDataPurgeExpiredCacheEntriesInHours
+          - CacheDataPurgeAgeOfCachedBucketObjInDays
+          - CacheDataTimeZoneForInterval
 
 # =============================================================================
 # PARAMETERS
@@ -200,44 +200,44 @@ Parameters:
   # ---------------------------------------------------------------------------
   # Cache-Data Parameters
 
-  CacheData_DbMaxCacheSizeInKB:
+  CacheDataDbMaxCacheSizeInKB:
     Type: Number
     Description: "DynamoDb does better when storing smaller pieces of data. Choose the cut-off in KB that large objects should be stored in S3 instead (10)"
     Default: 10
     MinValue: 10
     MaxValue: 200
     ConstraintDescription: "Numeric value between 10 and 200 (inclusive)"
-  CacheData_CryptIdHashAlgorithm:
+  CacheDataCryptIdHashAlgorithm:
     Type: String
     Description: "Hash algorithm used for generating the URI ID to identify cached requests. This is for generating IDs, not crypto."
     Default: "RSA-SHA256"
     AllowedValues: ["RSA-SHA256", "RSA-SHA3-224", "RSA-SHA3-256", "RSA-SHA3-384", "RSA-SHA3-512"]
     ConstraintDescription: "Use possible hashes available from Node.js in the RSA- category (RSA-SHA256 to RSA-SM3)"
-  CacheData_CryptSecureDataAlg:
+  CacheDataCryptSecureDataAlg:
     Type: String
     Description: "Cryptographic algorithm to use for storing sensitive cached data in S3 and DynamoDb"
     Default: "aes-256-cbc"
     AllowedValues: ["aes-256-cbc", "aes-256-cfb", "aes-256-cfb1", "aes-256-cfb8", "aes-256-ofb"]
     ConstraintDescription: "Use possible cipher algorithms available (crypto.getCiphers()) from Node.js in the aes-256-xxx category"
-  CacheData_ErrorExpirationInSeconds:
+  CacheDataErrorExpirationInSeconds:
     Type: Number
     Description: "How long should errors be cached? This prevents retrying a service that is currenlty in error too often (300 is recommended)"
     Default: 300
     MinValue: 1
     ConstraintDescription: "Choose a value of 1 or greater"
-  CacheData_PurgeExpiredCacheEntriesInHours:
+  CacheDataPurgeExpiredCacheEntriesInHours:
     Type: Number
     Description: "The number of hours expired cached data should be kept before purging. Expired cache data may be used if the source returns an error."
     Default: 24
     MinValue: 1
     ConstraintDescription: "Choose a value of 1 or greater"
-  CacheData_PurgeAgeOfCachedBucketObjInDays:
+  CacheDataPurgeAgeOfCachedBucketObjInDays:
     Type: Number
     Description: "Similar to CacheData_PurgeExpiredCacheEntriesInHours, but for the S3 Bucket. S3 calculates from time object is created/last modified (not accessed). This should be longer than your longest cache expiration set in custom/policies. Keeping objects in S3 for too long increases storage costs. (30 is recommended)"
     Default: 15
     MinValue: 3
     ConstraintDescription: "Choose a value of 3 days or greater. This should be slightly longer than the longest cache expiration expected"
-  CacheData_TimeZoneForInterval:
+  CacheDataTimeZoneForInterval:
     Type: String
     Description: "Cache-Data may expire using an interval such as every four, six, twelve, ... hours on the hour starting at midnight. What timezone holds the midnight to calculate from?"
     Default: "Etc/UTC"
@@ -324,14 +324,14 @@ Resources:
           lambdaTimeoutInSeconds: !Ref FunctionTimeOutInSeconds # so we can calculate any external connection timeout in our code
 
           # Cache-Data settings
-          CacheData_DynamoDbTable: !Ref CacheData_DynamoDbTable
-          CacheData_S3Bucket: !Ref CacheData_S3Bucket
-          CacheData_CryptSecureDataAlgorithm: !Ref CacheData_CryptSecureDataAlg
-          CacheData_CryptIdHashAlgorithm: !Ref CacheData_CryptIdHashAlgorithm
-          CacheData_DynamoDb_maxCacheSize_kb: !Ref CacheData_DbMaxCacheSizeInKB
-          CacheData_PurgeExpiredCacheEntriesAfterXHours: !Ref CacheData_PurgeExpiredCacheEntriesInHours
-          CacheData_ErrorExpiresInSeconds: !Ref CacheData_ErrorExpirationInSeconds
-          CacheData_TimeZoneForInterval: !Ref CacheData_TimeZoneForInterval
+          CacheData_DynamoDbTable: !Ref CacheDataDynamoDbTable
+          CacheData_S3Bucket: !Ref CacheDataS3Bucket
+          CacheData_CryptSecureDataAlgorithm: !Ref CacheDataCryptSecureDataAlg
+          CacheData_CryptIdHashAlgorithm: !Ref CacheDataCryptIdHashAlgorithm
+          CacheData_DynamoDb_maxCacheSize_kb: !Ref CacheDataDbMaxCacheSizeInKB
+          CacheData_PurgeExpiredCacheEntriesAfterXHours: !Ref CacheDataPurgeExpiredCacheEntriesInHours
+          CacheData_ErrorExpiresInSeconds: !Ref CacheDataErrorExpirationInSeconds
+          CacheData_TimeZoneForInterval: !Ref CacheDataTimeZoneForInterval
 
       Events:
         GetEvent:
@@ -397,7 +397,7 @@ Resources:
             - s3:GetObject
             - s3:GetObjectVersion
             Effect: Allow
-            Resource: !Join [ '', [ !GetAtt S3DeployBucket.Arn, '/cache/*' ] ]
+            Resource: !Join [ '', [ !GetAtt CacheDataS3Bucket.Arn, '/cache/*' ] ]
 
           # cache-data DynamoDb table
           - Sid: LambdaAccessToDynamoDBTableCacheData
@@ -410,7 +410,7 @@ Resources:
             - dynamodb:UpdateItem
             - dynamodb:BatchWriteItem
             Effect: Allow
-            Resource: !GetAtt: CacheDataDynamoDbTable.Arn
+            Resource: !GetAtt CacheDataDynamoDbTable.Arn
 
   # -- Permissions allowing API Gateway to Execute Lambda via Web Console Test button --
   # See https://github.com/awslabs/serverless-application-model/issues/59#issuecomment-348709355
@@ -509,9 +509,9 @@ Resources:
           - Id: "ExpireObjects"
             AbortIncompleteMultipartUpload:
               DaysAfterInitiation: 1
-            ExpirationInDays: !Ref CacheData_PurgeAgeOfCachedBucketObjInDays
+            ExpirationInDays: !Ref CacheDataPurgeAgeOfCachedBucketObjInDays
             Prefix: "cache" # this will limit this policy to YOURBUCKETNAME/cache/*
-            NoncurrentVersionExpirationInDays: !Ref CacheData_PurgeAgeOfCachedBucketObjInDays
+            NoncurrentVersionExpirationInDays: !Ref CacheDataPurgeAgeOfCachedBucketObjInDays
             Status: "Enabled" # Enable only if you are going to use this LifecycleConfiguration
 
   # -- S3 Bucket Policy for Lambda App Data Storage --
@@ -855,6 +855,13 @@ Outputs:
   APIEndpointTest:
     Description: "Endpoint Test URL"
     Value: !Sub "https://${WebApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiPathBase}/?q=Chicago"
+  CloudWatchLogGroup:
+    Description: "Cloud Watch Log Group for application"
+    Value: !Sub "https://console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#logStream:group=%2Faws%2Flambda%2F${AppFunction}"
+  CloudWatchDashboard:
+    Condition: CreateProdResources
+    Description: "Cloud Watch Dashboard (for production environments only)"
+    Value: !Sub 'https://console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=${Dashboard}'
   LambdaWebConsole:
     Description: "Lambda Web Console"
     Value: !Sub "https://console.aws.amazon.com/lambda/home?region=${AWS::Region}#/functions/${AppFunction}?tab=code"
