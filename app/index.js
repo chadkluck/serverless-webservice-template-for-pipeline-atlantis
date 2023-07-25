@@ -1,18 +1,19 @@
 /* 
 *******************************************************************************
-Serverless Demo Template with internal Cache Restful API
+Serverless API Web Service with Internal Cache
 *******************************************************************************
 
-Version: 0.1.0-20220723-1800
-Last Modified: 2023-07-23
-Author: Chad Kluck, University of St. Thomas Libraries
+Version: 1.0.0-20230722-1800
+Last Modified: 2023-07-22
+Author: Chad Leigh Kluck, chadkluck.me
 
-GitHub: https://github.com/USTLibraries
+GitHub: https://github.com/chadkluck
 
 -------------------------------------------------------------------------------
 
 This is a template for an AWS Lambda function that provides an api service
-via API Gateway. Internal caching utilizes DynamoDb and S3.
+via API Gateway. Internal caching utilizes DynamoDb and S3 through the
+npm package @chadkluck/cache-data .
 
 -------------------------------------------------------------------------------
 

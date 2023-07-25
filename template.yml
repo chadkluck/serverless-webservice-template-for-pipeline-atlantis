@@ -1,11 +1,64 @@
 AWSTemplateFormatVersion: 2010-09-09
-# Comments with 3#'s (###) are reserved for true CodeStar projects. Remove the 3#'s for true CodeStar projects
 
 Transform:
 - AWS::Serverless-2016-10-31
-###- AWS::CodeStar # Uncomment for CodeStar projects - Leave commented for ProjectStack
 
-Description: "demo-web-service: Web Service as a template"
+Description: "Web Service CloudFormation Application Infrastructure Template"
+
+# =============================================================================
+# META DATA
+# -----------------------------------------------------------------------------
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudformation-interface.html
+# 
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - 
+        Label:
+          default: "Application Resource Naming"
+        Parameters:
+          - Prefix
+          - ProjectId
+          - StageId
+          - S3BucketNameOrgPrefix
+      -
+        Label:
+          default: "Deployment Environment Identification"
+        Parameters:
+          - DeployEnvironment
+      -
+        Label:
+          default: "External Resources and Alarm Notifications"
+        Parameters:
+          - AppParameterStorePath
+          - AlarmNotificationEmail
+      -
+        Label:
+          default: "Lambda Function Settings"
+        Parameters:
+          - FunctionTimeOutInSeconds
+          - FunctionMaxMemoryInMB
+          - FunctionGradualDeploymentType
+          - DeployRole
+      -
+        Label:
+          default: "Application Parameters"
+        Parameters:
+          - ApiPathBase
+          - UserAgent
+          - LogRetentionInDaysForPROD
+          - LogRetentionInDaysForDEVTEST
+      -
+        Label:
+          default: "Cache-Data Parameters"
+        Parameters:
+          - CacheData_DbMaxCacheSizeInKB
+          - CacheData_CryptIdHashAlgorithm
+          - CacheData_CryptSecureDataAlg
+          - CacheData_ErrorExpirationInSeconds
+          - CacheData_PurgeExpiredCacheEntriesInHours
+          - CacheData_PurgeAgeOfCachedBucketObjInDays
 
 # =============================================================================
 # PARAMETERS
@@ -16,188 +69,80 @@ Description: "demo-web-service: Web Service as a template"
 Parameters:
 
   # ---------------------------------------------------------------------------
-  # ProjectStack/CodeStar Environment Parameters
+  # Application Resource Naming
 
-  ProjectId:
-    Description: "The Project ID for the application. For CodeStar this will be the same as ProjectStageId. (Minimum 2 characters, and, if it is a CodeStar project, max of 15 characters). The Stage parameter will be appended to the ProjectID and must be taken into account as the max length of ProjectID is 15 characters."
-    Type: String
-    AllowedPattern: "^[a-z][a-z0-9-]+$"
-    MinLength: 2
-  ProjectStageId:
-    Description: "The Project ID for the application with the stage appended (if there is a stage). If it is a CodeStar project, max of 15 characters and it will be the same as ProjectID."
-    Type: String
-    AllowedPattern: "^[a-z][a-z0-9-]+$"
-    MinLength: 2
-    ConstraintDescription: "Must contain only lowercase alphanumeric characters, dash, or underscore, and be between 2 and 15 characters in length."
   Prefix:
-    Description: Prefix to assign to resources
     Type: String
-    AllowedPattern: "[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9]"
-    MinLength: 3
-    MaxLength: 15
-    ConstraintDescription: 3 to 15 characters. Alphanumeric (upper and lower), hyphen, and underscore. Must start with a letter and must end with a letter or number.
-    Default: "awscodestar"
-  DeployStage:
-    Description: "This project represents what stage in the CI/CD pipeline? (test, beta, stage, prod). This should be equal to the deployment stage appended to the Project ID. The project ID plus the stage value must not exceed 15 characters."
+    Description: "Prefix to assign to resources. This can be thought of as a Name Space and will be pre-pended to all resources. Use it to identify ownership/access for teams, departments, etc. Must have a corresponding CloudFormation Service Role. Ex: 'ws-hello-world-test' the Prefix would be 'ws', ProjectId would be 'hello-world', and the StageId would be 'test'."
+    Default: "atlantis" 
+    AllowedPattern: "^[a-z][a-z0-9-]*[a-z0-9]$"
+    MinLength: 2
+    MaxLength: 8
+    ConstraintDescription: "2 to 8 characters. Alphanumeric (lower case) and dashes. Must start with a letter and end with a letter or number."
+  ProjectId:
     Type: String
-    AllowedPattern: "[a-z0-9]*"
-    MaxLength: 12
-    ConstraintDescription: "Must contain only lowercase alphanumeric characters and be no more than 12 characters in length."
-    Default: "" 
+    Description: "Do NOT include <Prefix> or <StageId>. This is the Project ID for the application. (Minimum 2 characters, suggested maximum of 20) Ex: 'ws-hello-world-test' the Prefix would be 'ws', ProjectId would be 'hello-world', and the StageId would be 'test'. If you get 'S3 bucket name too long' errors then you must shorten the Project ID or use an S3 Org Prefix. Long Project IDs may also be truncated when naming resources."
+    AllowedPattern: "^[a-z][a-z0-9-]*[a-z0-9]$"
+    MinLength: 2
+    ConstraintDescription: "Minimum of 2 characters (suggested maximum of 20). Alphanumeric (lower case) and dashes. Must start with a letter and end with a letter or number."
+  StageId:
+    Type: String
+    Description: "Do NOT include <Prefix> or <ProjectId>. <StageId> does not need to match <DeployEnvironment>. You can have multiple stages in the TEST environment (e.g. test, john-test), and multiple stages in PROD (e.g. stage, beta, prod). Ex: 'ws-hello-world-test' the Prefix would be 'ws', ProjectId would be 'hello-world', and the StageId would be 'test'."
+    AllowedPattern: "^[a-z][a-z0-9-]*[a-z0-9]$"
+    MinLength: 2
+    MaxLength: 10
+    ConstraintDescription: "2 to 10 characters. Alphanumeric (lower case) and dashes. Must start with a letter and end with a letter or number."
+  S3BucketNameOrgPrefix:
+    Type: String
+    Description: "By default, to enforce uniqueness, buckets created for deploy and infrastructure include account and region in the bucket name. However, due to S3 bucket name character limits, you can turn this off by specifying your own prefix (like an org code) that will be included before the project <Prefix> above."
+    Default: ""
+    AllowedPattern: "^[a-z][a-z0-9-]*[a-z0-9]$|^$"
+    ConstraintDescription: "May be empty or at least 2 characters long. Must start with a letter, may contain lowercase letters, numbers, and hyphens."
+
+  # ---------------------------------------------------------------------------
+  # Deployment Environment Identification
+
   DeployEnvironment:
-    Description: "What deploy/testing environment will this run under? An environment can contain mulitple stages and in coordination with run different tests. Utilize this environment variable to determine your tests and app logging levels during deploy"
     Type: String
-    AllowedValues: [DEV, TEST, PROD]
-    ConstraintDescription: Must specify DEV, TEST, or PROD.
-    Default: "DEV" 
-  DeployRole:
+    Description: "What deploy/testing environment will this run under? An environment can contain multiple stages and in coordination with run different tests. Utilize this environment variable to determine your tests and app logging levels during deploy. This can be used for conditionals in the template. For example, PROD will use gradual deployment while DEV and TEST is AllAtOnce. Other resources, such as dashboards are created in PROD and not DEV or TEST. Suggested use: DEV for local SAM deployment, TEST for cloud deployment, PROD for stage, beta, and main/prod deployment."
+    Default: "PROD"
+    AllowedValues: ["DEV", "TEST", "PROD"]
+    ConstraintDescription: "Must specify DEV, TEST, or PROD."
+
+  # ---------------------------------------------------------------------------
+  # External Resources and Alarm Notifications
+
+  AppParameterStorePath:
     Type: String
-    Description: "IAM role to allow AWS CodeDeploy to manage deployment of AWS Lambda functions"
-  ParameterStoreAppPath:
-    Description: "Parameter store path to organize parameters for this application. The value is in the format of: /<ParameterStoreBasePath>/<ProjectStageId>/"
-    Type: String
-    AllowedPattern: "^\\/([a-zA-Z0-9]+([\\-][a-zA-Z0-9]+)*[\\/])+$|^\\/$"
-    ConstraintDescription: Must only contain alpha-numeric, dashes, or slashes. Must begin and end with a slash /.
+    Description: "Path in Parameter Store reserved for this specific application's infrastructure such as /<ParameterStoreBasePathFromDeployPipeline>/<Prefix>-<ProjectId>-<StageId>/<AppParameterUsedByApplication>"
     Default: "/"
+    AllowedPattern: "^\\/([a-zA-Z0-9]+([\\-][a-zA-Z0-9]+)*[\\/])+$|^\\/$"
+    ConstraintDescription: "Must only contain alpha-numeric, dashes, or slashes. Must be a single slash or begin and end with a slash /."
   AlarmNotificationEmail:
     Type: String
-    Description: "Email address to send a notification to when Lambda function goes into alarm"
+    Description: "Email address to send a notification to when Lambda function goes into alarm. Be sure to check the inbox for this email address as you will need to confirm the subscription."
     AllowedPattern: '^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$'
-    ConstraintDescription: 'A valid email must be used to receive alarm notifications'
+    ConstraintDescription: "A valid email must be used to receive alarm notifications"
 
   # ---------------------------------------------------------------------------
-  # Application Parameters
-
-  ApiPathBase:
-    Type: String
-    Default: "api"
-    Description: "The name of the API base path, which API Gateway uses as the first path segment in the invoked Uniform Resource Identifier (URI). API Gateway refers to this as StageName and uses 'Prod' as default, but it is unrelated to the DeployStage parameter. For example: apigatewaydomain.com/Prod or apigatewaydomain.com/api or apigatewaydomain.com/myapp. A custom domain setting can mask the base path. However, if using the API Gateway generic URL, it could be used to provide an indicator of what app lies at the endpoint or even what depoly stage (e.g. 'cache-api' or 'cache-api-test')"
-    AllowedPattern: ^[a-z]([a-z0-9-_])+$
-    MaxLength: 128
-    MinLength: 1
-    ConstraintDescription: "1-128 lowercase alpha numeric, hyphens, and underscores"
-  DbMaxCacheSizeInKB:
-    Type: Number
-    Default: 10
-    Description: "DynamoDb does better when storing smaller pieces of data. Choose the cut-off in KB that large objects should be stored in S3 instead (10)"
-    MinValue: 10
-    MaxValue: 200
-    ConstraintDescription: "Numeric value between 10 and 200 (inclusive)"
-  CryptIdHashAlgorithm:
-    Type: String
-    Default: "RSA-SHA256"
-    Description: "Hash algorithm used for generating the URI ID to identify cached requests. This is for generating IDs, not crypto."
-    AllowedValues:
-      - "RSA-SHA256"
-      - "RSA-SHA3-224"
-      - "RSA-SHA3-256"
-      - "RSA-SHA3-384"
-      - "RSA-SHA3-512"
-    ConstraintDescription: "Use possible hashes available from Node.js in the RSA- category (RSA-SHA256 to RSA-SM3)"
-  CryptSecureDataAlg:
-    Type: String
-    Default: "aes-256-cbc"
-    Description: "Cryptographic algorithm to use for storing sensitive cached data"
-    AllowedValues:
-      - "aes-256-cbc"
-      - "aes-256-cfb"
-      - "aes-256-cfb1"
-      - "aes-256-cfb8"
-      - "aes-256-ofb"
-    ConstraintDescription: "Use possible cipher algorithms available (crypto.getCiphers()) from Node.js in the aes-256-xxx category"
-  ErrorExpirationInSeconds:
-    Type: Number
-    Default: 300
-    Description: "How long should errors be cached? This prevents retrying a service that is currenlty in error too often (300 is recommended)"
-    MinValue: 1
-    ConstraintDescription: "Choose a value of 1 or greater"
-  PurgeExpiredCacheEntriesInHours:
-    Type: Number
-    Default: 24
-    Description: "The number of hours expired cached data should be kept before purging. Expired cache data may be used if the source returns an error."
-    MinValue: 1
-    ConstraintDescription: "Choose a value of 1 or greater"
-  PurgeAgeOfCachedBucketObjInDays:
-    Type: Number
-    Default: 15
-    Description: "Similar to PurgeEpiredCachedEntriesInHours, but for the S3 Bucket. S3 calculates from time object is created/last modified (not accessed). This should be longer than your longest cache expiration set in custom/policies. Keeping objects in S3 for too long increases storage costs. (30 is recommended)"
-    MinValue: 3
-    ConstraintDescription: "Choose a value of 3 days or greater. This should be slightly longer than the longest cache expiration expected"
-  UserAgent:
-    Type: String
-    Default: "Analytics Web Service"
-    Description: "Analytics Web Service passes along the client's user agent string in the header. If no user agent string is present, what should it use?"
-  LogRetentionInDaysForPROD:
-    Type: Number
-    Default: 90
-    Description: "How long should CloudWatch logs be kept in a PRODUCTION environment?"
-    AllowedValues:
-      - 1
-      - 3
-      - 5
-      - 7
-      - 14
-      - 30
-      - 60
-      - 90
-      - 120
-      - 150
-      - 180
-      - 365
-      - 400
-      - 545
-      - 731
-      - 1827
-      - 3653
-  LogRetentionInDaysForDEVTEST:
-    Type: Number
-    Default: 7
-    Description: "How long should CloudWatch logs be kept in a DEV or TEST environment?"
-    AllowedValues:
-      - 1
-      - 3
-      - 5
-      - 7
-      - 14
-      - 30
-      - 60
-      - 90
-      - 120
-      - 150
-      - 180
-      - 365
-      - 400
-      - 545
-      - 731
-      - 1827
-      - 3653
-
-  # ---------------------------------------------------------------------------
-  # Lambda App Settings
+  # Lambda Function Settings
 
   FunctionTimeOutInSeconds:
     Type: Number
-    Default: 10
     Description: "Time out in seconds for the Lambda function. API Gateway times out after 30 seconds. This web service is ideal for requests that can complete in less than 10 seconds"
+    Default: 10
     MinValue: 3
     MaxValue: 30
   FunctionMaxMemoryInMB:
     Type: Number
-    Default: 128
     Description: "If you are handling large responses, you will need to increase the size. Monitor CloudWatch logs"
-    AllowedValues:
-      - 128
-      - 192
-      - 256
-      - 320
-      - 384
-      - 448
-      - 512
+    Default: 128
+    AllowedValues: [128, 192, 256, 320, 384, 448, 512]
     ConstraintDescription: "Min 128, Max 512 in increments of 64"
   FunctionGradualDeploymentType:
     Type: String
-    Default: "Linear10PercentEvery3Minutes"
     Description: "For production environments, what method do you want to use to gradually deploy before rolling back in case of errors. Note that when 'DeployEnvironment' is TEST or DEV, gradual deploy will not be enabled and will be same as All At Once"
+    Default: "Linear10PercentEvery3Minutes"
     AllowedValues:
       - "Canary10Percent5Minutes" # Canary = First 10%, then after x minutes, full 90% (full deploy after x minutes)
       - "Canary10Percent10Minutes"
@@ -208,7 +153,82 @@ Parameters:
       - "Linear10PercentEvery3Minutes"
       - "Linear10PercentEvery10Minutes"
       - "AllAtOnce" # All at once. Recommended only for TEST and DEV environments.
+  DeployRole:
+    Type: String
+    Description: "IAM role to allow AWS CodeDeploy to manage deployment of AWS Lambda functions"
 
+  # ---------------------------------------------------------------------------
+  # Application Settings
+
+  ApiPathBase:
+    Type: String
+    Description: "The path API Gateway uses as the first segment in the invoked Uniform Resource Identifier (URI). Since API Gateway generates random characters for the domain, it can be helpful to use this in identifying applications and stages. If a custom domain is used it can be masked and hidden from visitors. For example: xyz08ryz.apigateway.aws.com/pets or xyz08ryz.apigateway.aws.com/myapp or xyz08ryz.apigateway.aws.com/myapp-test. It is recommended you set this in the template-config.json file and allow the stage to be dynamically appended."
+    Default: "api"
+    AllowedPattern: ^[a-z0-9]([a-z0-9-_]*[a-z0-9])?$
+    MaxLength: 128
+    MinLength: 1
+    ConstraintDescription: "1-128 lowercase alpha numeric, hyphens, and underscores. Must begin and end with an alphanumeric character."
+  UserAgent:
+    Type: String
+    Description: "When making requests to external APIs, the web service will include this User Agent string in the header. How do you want your web service to identify itself to other servers?"
+    Default: "Web Service"
+  LogRetentionInDaysForPROD:
+    Type: Number
+    Description: "How long should CloudWatch logs be kept in a PRODUCTION environment?"
+    Default: 90
+    AllowedValues: [1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653]
+  LogRetentionInDaysForDEVTEST:
+    Type: Number
+    Description: "How long should CloudWatch logs be kept in a DEV or TEST environment?"
+    Default: 7
+    AllowedValues: [1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653]
+
+  # ---------------------------------------------------------------------------
+  # Cache-Data Parameters
+
+  CacheData_DbMaxCacheSizeInKB:
+    Type: Number
+    Description: "DynamoDb does better when storing smaller pieces of data. Choose the cut-off in KB that large objects should be stored in S3 instead (10)"
+    Default: 10
+    MinValue: 10
+    MaxValue: 200
+    ConstraintDescription: "Numeric value between 10 and 200 (inclusive)"
+  CacheData_CryptIdHashAlgorithm:
+    Type: String
+    Description: "Hash algorithm used for generating the URI ID to identify cached requests. This is for generating IDs, not crypto."
+    Default: "RSA-SHA256"
+    AllowedValues: ["RSA-SHA256", "RSA-SHA3-224", "RSA-SHA3-256", "RSA-SHA3-384", "RSA-SHA3-512"]
+    ConstraintDescription: "Use possible hashes available from Node.js in the RSA- category (RSA-SHA256 to RSA-SM3)"
+  CacheData_CryptSecureDataAlg:
+    Type: String
+    Description: "Cryptographic algorithm to use for storing sensitive cached data in S3 and DynamoDb"
+    Default: "aes-256-cbc"
+    AllowedValues: ["aes-256-cbc", "aes-256-cfb", "aes-256-cfb1", "aes-256-cfb8", "aes-256-ofb"]
+    ConstraintDescription: "Use possible cipher algorithms available (crypto.getCiphers()) from Node.js in the aes-256-xxx category"
+  CacheData_ErrorExpirationInSeconds:
+    Type: Number
+    Description: "How long should errors be cached? This prevents retrying a service that is currenlty in error too often (300 is recommended)"
+    Default: 300
+    MinValue: 1
+    ConstraintDescription: "Choose a value of 1 or greater"
+  CacheData_PurgeExpiredCacheEntriesInHours:
+    Type: Number
+    Description: "The number of hours expired cached data should be kept before purging. Expired cache data may be used if the source returns an error."
+    Default: 24
+    MinValue: 1
+    ConstraintDescription: "Choose a value of 1 or greater"
+  CacheData_PurgeAgeOfCachedBucketObjInDays:
+    Type: Number
+    Description: "Similar to CacheData_PurgeExpiredCacheEntriesInHours, but for the S3 Bucket. S3 calculates from time object is created/last modified (not accessed). This should be longer than your longest cache expiration set in custom/policies. Keeping objects in S3 for too long increases storage costs. (30 is recommended)"
+    Default: 15
+    MinValue: 3
+    ConstraintDescription: "Choose a value of 3 days or greater. This should be slightly longer than the longest cache expiration expected"
+  CacheData_TimeZoneForInterval:
+    Type: String
+    Description: "Cache-Data may expire using an interval such as every four, six, twelve, ... hours on the hour starting at midnight. What timezone holds the midnight to calculate from?"
+    Default: "Etc/UTC"
+    AllowedValues: ["Etc/UTC", "America/Puerto_Rico", "America/New_York", "America/Indianapolis", "America/Chicago", "America/Denver", "America/Phoenix", "America/Los_Angeles", "America/Anchorage", "Pacific/Honolulu"] # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+    ConstraintDescription: "Common examples for United States of America. Accepted values can be changed in the template for your region."
 
 # =============================================================================
 # CONDITIONS
@@ -217,14 +237,15 @@ Parameters:
 #
 
 Conditions:
-  IsCodeStar: !Equals [!Ref Prefix, "awscodestar"]
   IsProduction: !Equals [!Ref DeployEnvironment, "PROD"]
+  IsNotProduction: !Not [!Equals [!Ref DeployEnvironment, "PROD"]]
   IsTest: !Equals [!Ref DeployEnvironment, "TEST"]
   IsDevelopment: !Equals [!Ref DeployEnvironment, "DEV"]
-  IsNotProduction: !Not [!Equals [!Ref DeployEnvironment, "PROD"]]
   CreateProdResources: !Equals [!Ref DeployEnvironment, "PROD"]
   CreateTestResources: !Equals [!Ref DeployEnvironment, "TEST"]
   CreateDevResources: !Equals [!Ref DeployEnvironment, "DEV"]
+  UseS3BucketNameOrgPrefix: !Not [!Equals [!Ref S3BucketNameOrgPrefix, ""]]
+  CreateAlarms: !Equals [!Ref DeployEnvironment, "PROD"] # !Equals ["ALWAYS", "ALWAYS"] # Option if you want to ALWAYS create an alarm or only in PROD. Alarms cost money so you may only want them in Prod (or temporarily in test)
 
 # =============================================================================
 # GLOBALS
@@ -244,7 +265,7 @@ Globals:
       Role: !Ref DeployRole
       Alarms:
         # You can add additional alarms, one is created for you
-        #- !If [IsProduction, !Ref AppFunctionErrorsAlarm, !Ref AWS::NoValue]  # how do we do a novalue for a list?
+        #- !If [CreateAlarms, !Ref AppFunctionErrorsAlarm, []] # Either PROD or ALWAYS - Check Conditions
         - !Ref AppFunctionErrorsAlarm
 
   Api:
@@ -259,14 +280,14 @@ Globals:
 Resources:
 
   # ---------------------------------------------------------------------------
-  # API Gateway, Lambda, and Deploy Monitoring
+  # API Gateway, Lambda, and Monitoring
 
   # -- API Gateway --
   WebApi:
     Type: AWS::Serverless::Api
     Properties: 
-      Name: !Sub '${Prefix}-${ProjectStageId}-WebApi'
-      StageName: !If [ IsCodeStar, "Prod", !Ref ApiPathBase] # First part of the path in the URI "https://${WebApi}.execute-api.${AWS::Region}.amazonaws.com/api/" CodeStar dashboard uses Prod. However, if you don't care, you can use your regular setting
+      Name: !Sub '${Prefix}-${ProjectId}-${StageId}-WebApi'
+      StageName: !Ref ApiPathBase
       DefinitionBody:
         "Fn::Transform":
           Name: "AWS::Include"
@@ -274,29 +295,29 @@ Resources:
             Location: ./swagger.yml
             
   # -- Lambda Function --
-  AppFunction: # If you rename FunctionName you need to rename this and vice versa
+  AppFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub '${Prefix}-${ProjectStageId}-AppFunction'
+      FunctionName: !Sub '${Prefix}-${ProjectId}-${StageId}-AppFunction'
       CodeUri: app/
       Handler: index.handler
       Environment:
         Variables:
           detailedLogs: !If [ IsProduction, "0",  "2"]
           deployEnvironment: !Ref DeployEnvironment
-          paramStorePath: !Ref ParameterStoreAppPath
+          paramStorePath: !Ref AppParameterStorePath
           user_agent_identifier: !Ref UserAgent
-
-          # Cache settings
-          DynamoDb_table_cache: !Ref AppDataDynamoDbTable
-          S3_bucket_cache: !Ref AppDataS3Bucket
-          crypt_secureDataAlgorithm: !Ref CryptSecureDataAlg
-          crypt_idHashAlgorithm: !Ref CryptIdHashAlgorithm
-          DynamoDb_maxCacheSize_kb: !Ref DbMaxCacheSizeInKB
-          purgeExpiredCacheEntriesAfterXHours: !Ref PurgeExpiredCacheEntriesInHours
-          errorExpiresInSeconds: !Ref ErrorExpirationInSeconds
           lambdaTimeoutInSeconds: !Ref FunctionTimeOutInSeconds # so we can calculate any external connection timeout in our code
 
+          # Cache-Data settings
+          CacheData_DynamoDbTable: !Ref CacheData_DynamoDbTable
+          CacheData_S3Bucket: !Ref CacheData_S3Bucket
+          CacheData_CryptSecureDataAlgorithm: !Ref CacheData_CryptSecureDataAlg
+          CacheData_CryptIdHashAlgorithm: !Ref CacheData_CryptIdHashAlgorithm
+          CacheData_DynamoDb_maxCacheSize_kb: !Ref CacheData_DbMaxCacheSizeInKB
+          CacheData_PurgeExpiredCacheEntriesAfterXHours: !Ref CacheData_PurgeExpiredCacheEntriesInHours
+          CacheData_ErrorExpiresInSeconds: !Ref CacheData_ErrorExpirationInSeconds
+          CacheData_TimeZoneForInterval: !Ref CacheData_TimeZoneForInterval
 
       Events:
         GetEvent:
@@ -312,21 +333,15 @@ Resources:
             Method: post
             RestApiId: !Ref WebApi
             
-      Role:
-        Fn::GetAtt:
-        - LambdaExecutionRole
-        - Arn
+      Role: !GetAtt LambdaExecutionRole.Arn
 
   # -- LambdaFunction Execution Role --
   LambdaExecutionRole:
     Type: AWS::IAM::Role
+    Description: "IAM Role that allows the Lambda permission to execute and access resources"
     Properties:
+      RoleName: !Sub "${Prefix}-${ProjectId}-${StageId}-ExecutionRole"
       Path: /
-      RoleName: !Join
-        - '-'
-        - - !If [ IsCodeStar, 'CodeStar', !Ref Prefix ] # CodeStar requires Camel Case in this instance
-          - !Ref ProjectStageId
-          - "ExecutionRole"
 
       AssumeRolePolicyDocument:
         Statement:
@@ -343,16 +358,13 @@ Resources:
         PolicyDocument:
           Statement:
 
-          - Sid: LambdaAccessToWriteLogs #This replaces the ManagedPolicyArns: !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+          - Sid: LambdaAccessToWriteLogs
             Action:
             - logs:CreateLogGroup
             - logs:CreateLogStream
             - logs:PutLogEvents
             Effect: Allow
-            Resource:
-              Fn::GetAtt:
-              - AppLogGroup
-              - Arn
+            Resource: !GetAtt AppLogGroup.Arn
 
           - Sid: LambdaAccessToSSMParameters
             Action:
@@ -362,23 +374,19 @@ Resources:
             - ssm:GetParametersByPath
             Effect: Allow
             Resource: 
-              !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${ParameterStoreAppPath}*" # no / between :parameter and path or before *
+              !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${AppParameterStorePath}*" # no / between :parameter and path or before *
 
-          - Sid: LambdaAccessToS3BucketCache
+          # cache-data S3 bucket
+          - Sid: LambdaAccessToS3BucketCacheData
             Action:
             - s3:PutObject
             - s3:GetObject
             - s3:GetObjectVersion
             Effect: Allow
-            Resource:
-              !Join 
-                - ''
-                - - Fn::GetAtt:
-                    - AppDataS3Bucket
-                    - Arn
-                  - "/cache/*"
+            Resource: !Join [ '', [ !GetAtt S3DeployBucket.Arn, '/cache/*' ] ]
 
-          - Sid: LambdaAccessToDynamoDBTable
+          # cache-data DynamoDb table
+          - Sid: LambdaAccessToDynamoDBTableCacheData
             Action:
             - dynamodb:GetItem
             - dynamodb:Scan
@@ -388,12 +396,9 @@ Resources:
             - dynamodb:UpdateItem
             - dynamodb:BatchWriteItem
             Effect: Allow
-            Resource:
-              Fn::GetAtt:
-              - AppDataDynamoDbTable
-              - Arn
+            Resource: !GetAtt: CacheDataDynamoDbTable.Arn
 
-  # -- Lambda permissions allowing API Gateway to Execute --
+  # -- Permissions allowing API Gateway to Execute Lambda via Web Console Test button --
   # See https://github.com/awslabs/serverless-application-model/issues/59#issuecomment-348709355
   ConfigLambdaPermission:
     Type: "AWS::Lambda::Permission"
@@ -405,7 +410,7 @@ Resources:
   # -- Lambda Function Error Alarm --
   AppFunctionErrorsAlarm:
     Type: "AWS::CloudWatch::Alarm"
-    # Condition: IsProduction # TODO: Alarms cost money. Somehow decouple from deployment preference
+    # Condition: CreateAlarms # Either PROD or ALWAYS - Check Conditions
     Properties:
       AlarmDescription: Lambda Function Error > 0
       MetricName: Errors
@@ -425,9 +430,9 @@ Resources:
   # -- Lambda Function Notification for Error Alarm --
   AppFunctionErrorAlarmNotification:
       Type: AWS::SNS::Topic
-      # Condition: IsProduction # TODO: Alarms cost money. Somehow decouple from deployment preference
+      # Condition: CreateAlarms # Either PROD or ALWAYS - Check Conditions
       Properties: 
-        DisplayName: !Sub 'AWS-Alarm-${Prefix}-${ProjectStageId}'
+        DisplayName: !Sub 'AWS-Alarm-${Prefix}-${ProjectId}-${StageId}'
         FifoTopic: false
         Subscription:
           - Endpoint: !Ref AlarmNotificationEmail
@@ -440,14 +445,18 @@ Resources:
   AppLogGroup:
     Type: AWS::Logs::LogGroup
     Properties: 
-        LogGroupName: !Sub '/aws/lambda/${Prefix}-${ProjectStageId}-AppFunction' # Avoid circular reference !Sub "/aws/lambda/${AppFunction}"
+        LogGroupName: !Sub '/aws/lambda/${Prefix}-${ProjectId}-${StageId}-AppFunction' # Avoid circular reference !Sub "/aws/lambda/${AppFunction}"
         RetentionInDays: !If [ IsProduction, !Ref LogRetentionInDaysForPROD,  !Ref LogRetentionInDaysForDEVTEST]
 
-  # -- DynamoDb for Lambda App Data Storage --
-  AppDataDynamoDbTable:
+  # ---------------------------------------------------------------------------
+  # Resources for Lambda Function - Cache-Data
+
+  # -- Cache-Data DynamoDb --
+  CacheDataDynamoDbTable:
     Type: AWS::DynamoDB::Table
+    Description: Table to store Cache-Data. 
     Properties:
-      TableName: !Sub '${Prefix}-${ProjectStageId}-CacheData'
+      TableName: !Sub '${Prefix}-${ProjectId}-${StageId}-CacheData'
       AttributeDefinitions: 
         - AttributeName: "id_hash"
           AttributeType: "S"
@@ -459,21 +468,19 @@ Resources:
         WriteCapacityUnits: 5
       TimeToLiveSpecification:
         AttributeName: "purge_ts"
-        Enabled: true # TODO: set to true if you want to enable TTL
+        Enabled: true
       SSESpecification:
         SSEEnabled: true
 
-  # -- S3 Bucket for Lambda App Data Storage --
-  AppDataS3Bucket:
+  # -- Cache-Data S3 --
+  CacheDataS3Bucket:
     Type: AWS::S3::Bucket
+    Description: S3 Bucket to store Cache-Data too big for DynamoDb. Cache-Data stores objects in /cache directory. The application may store additional data outside of the cache directory.
     Properties:
-      BucketName: !Join # because this is not a public bucket, we'll give it a uniquely, specific name with region and acct
-        - '-'
-        - - !If [ IsCodeStar, 'aws-codestar', !Ref Prefix ] # S3 buckets for CodeStar for some reason use a dash (aws-codestar) so we can't just use the awscodestar prefix for CodeStar
-          - !Ref AWS::Region
-          - !Ref AWS::AccountId
-          - !Ref ProjectStageId
-          - 'appdata'
+      BucketName: !Join
+        - "-"
+        - - !If [UseS3BucketNameOrgPrefix, !Sub "${S3BucketNameOrgPrefix}-${Prefix}", !Sub "${Prefix}-${AWS::Region}-${AWS::AccountId}" ]
+          - !Sub "${ProjectId}-${StageId}-cachedata"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -488,29 +495,44 @@ Resources:
           - Id: "ExpireObjects"
             AbortIncompleteMultipartUpload:
               DaysAfterInitiation: 1
-            ExpirationInDays: !Ref PurgeAgeOfCachedBucketObjInDays
+            ExpirationInDays: !Ref CacheData_PurgeAgeOfCachedBucketObjInDays
             Prefix: "cache" # this will limit this policy to YOURBUCKETNAME/cache/*
-            NoncurrentVersionExpirationInDays: !Ref PurgeAgeOfCachedBucketObjInDays
+            NoncurrentVersionExpirationInDays: !Ref CacheData_PurgeAgeOfCachedBucketObjInDays
             Status: "Enabled" # Enable only if you are going to use this LifecycleConfiguration
 
   # -- S3 Bucket Policy for Lambda App Data Storage --
-  AppDataS3BucketPolicy:
+  CacheDataS3BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref AppDataS3Bucket
+      Bucket: !Ref CacheDataS3Bucket
       PolicyDocument:
+        Version: "2012-10-17"
+        Id: SecurityPolicy
         Statement:
-              - Sid: "DenyNonSecureTransportAccess"
-                Effect: Deny
-                Principal: "*"
-                Action: "s3:*"
-                Resource:
-                  - !GetAtt AppDataS3Bucket.Arn
-                  - !Join [ '', [ !GetAtt AppDataS3Bucket.Arn, '/*' ] ]
-                Condition:
-                  Bool:
-                    "aws:SecureTransport": false
+          - Sid: "DenyNonSecureTransportAccess"
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !GetAtt CacheDataS3Bucket.Arn
+              - !Join [ '', [ !GetAtt CacheDataS3Bucket.Arn, '/*' ] ]
+            Condition:
+              Bool:
+                "aws:SecureTransport": false
 
+          # - Sid: WhitelistLambdaExecutionRole
+          #   Action: "s3:*"
+          #   Effect: Deny
+          #   Principal: "*"
+          #   Resource:
+          #     - !GetAtt CacheDataS3Bucket.Arn
+          #     - !Join [ '', [ !GetAtt CacheDataS3Bucket.Arn, '/*' ] ]
+          #   Condition:
+          #     StringNotEquals: {
+          #       "aws:PrincipalArn": [
+          #         !GetAtt LambdaExecutionRole.Arn,
+          #       ]
+          #     }
 
   # ---------------------------------------------------------------------------
   # Monitoring
@@ -520,36 +542,7 @@ Resources:
     Type: AWS::CloudWatch::Dashboard
     Condition: CreateProdResources
     Properties:
-      DashboardName: !Sub '${Prefix}-${ProjectStageId}-Dashboard'
-      # - Three options, perform an include (which isn't working) or put it in as a sub
-      # - Include doesn't work as it inserts as yaml. We need to insert the json object as a string
-      # - OPTION 1: Include (doesn't work)
-      # DashboardBody: 
-      #   "Fn::Transform":
-      #     Name: "AWS::Include"
-      #     Parameters:
-      #       Location: ./template-dashboard-body.json
-      # - OPTION 2: Inline json with sub
-      # DashboardBody: !Sub |
-      #   {
-      #       "widgets": [
-      #       ]
-      #   }
-      # - OPTION 3: can we do an include this way? (untested)
-      # DashboardBody: !Sub |
-      #   "Fn::Transform":
-      #     Name: "AWS::Include"
-      #     Parameters:
-      #       Location: ./template-dashboard-body.json
-      # - OPTION 4:
-      # DashboardBody: !Join
-      #   - ""
-      #   - - "Fn::Transform":
-      #         Name: "AWS::Include"
-      #         Parameters:
-      #           Location: ./template-dashboard-body.json
-      #     - ""
-
+      DashboardName: !Sub '${Prefix}-${ProjectId}-${StageId}-Dashboard'
       DashboardBody: !Sub |
         {
             "widgets": [
@@ -560,7 +553,7 @@ Resources:
                     "width": 24,
                     "height": 3,
                     "properties": {
-                        "markdown": "# ${Prefix}-${ProjectStageId}-Dashboard"
+                        "markdown": "# ${Prefix}-${ProjectId}-${StageId}-Dashboard"
                     }
                 },
                 {
@@ -844,27 +837,19 @@ Resources:
 Outputs:
   APIEndpoint:
     Description: "Endpoint URL"
-    Value: !Join
-      - ""
-      - - !Sub "https://${WebApi}.execute-api.${AWS::Region}.amazonaws.com/"
-        - !If [ IsCodeStar, "Prod", !Ref ApiPathBase ] # CodeStar uses *.amazonaws.com/Prod but for ProjectStack you can use whatever you want by setting ApiPathBase
-        - "/"
+    Value: !Sub "https://${WebApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiPathBase}/"
   APIEndpointTest:
     Description: "Endpoint Test URL"
-    Value: !Join
-      - ""
-      - - !Sub "https://${WebApi}.execute-api.${AWS::Region}.amazonaws.com/"
-        - !If [ IsCodeStar, "Prod", !Ref ApiPathBase ] # CodeStar uses *.amazonaws.com/Prod but for ProjectStack you can use whatever you want by setting ApiPathBase
-        - "/?q=Chicago"
+    Value: !Sub "https://${WebApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiPathBase}/?q=Chicago"
   LambdaWebConsole:
     Description: "Lambda Web Console"
     Value: !Sub "https://console.aws.amazon.com/lambda/home?region=${AWS::Region}#/functions/${AppFunction}?tab=code"
   DynamoDbWebConsole:
     Description: "DynamoDb Table Web Console"
-    Value: !Sub "https://console.aws.amazon.com/dynamodbv2/home?region=${AWS::Region}#table?name=${AppDataDynamoDbTable}&initialTableGroup=%23all"
+    Value: !Sub "https://console.aws.amazon.com/dynamodbv2/home?region=${AWS::Region}#table?name=${CacheDataDynamoDbTable}&initialTableGroup=%23all"
   S3BucketWebConsole:
     Description: "S3 Bucket Web Console"
-    Value: !Sub "https://s3.console.aws.amazon.com/s3/buckets/${AppDataS3Bucket}?region=${AWS::Region}"
+    Value: !Sub "https://s3.console.aws.amazon.com/s3/buckets/${CacheDataS3Bucket}?region=${AWS::Region}"
   SSMParameterStore:
     Description: "SSM Parameter Store Location"
-    Value: !Ref ParameterStoreAppPath
+    Value: !Ref AppParameterStorePath

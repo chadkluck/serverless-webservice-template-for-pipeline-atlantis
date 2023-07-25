@@ -297,15 +297,15 @@ class Config extends tools._ConfigSuperClass {
 
 				// Cache settings
 				cache.Cache.init({
-					dynamoDbTable: process.env.DynamoDb_table_cache,
-					s3Bucket: process.env.S3_bucket_cache,
-					secureDataAlgorithm: process.env.crypt_secureDataAlgorithm,
+					dynamoDbTable: process.env.CacheData_DynamoDbTable,
+					s3Bucket: process.env.CacheData_S3Bucket,
+					secureDataAlgorithm: process.env.CacheData_CryptSecureDataAlgorithm,
 					secureDataKey: Buffer.from(params.app.crypt_secureDataKey, cache.Cache.CRYPT_ENCODING),
-					idHashAlgorithm: process.env.crypt_idHashAlgorithm,
-					DynamoDbMaxCacheSize_kb: parseInt(process.env.DynamoDb_maxCacheSize_kb, 10),
-					purgeExpiredCacheEntriesAfterXHours: parseInt(process.env.purgeExpiredCacheEntriesAfterXHours, 10),
-					defaultExpirationExtensionOnErrorInSeconds: parseInt(process.env.errorExpirationInSeconds, 10),
-					timeZoneForInterval: Config.getSettings("timeZoneForCacheInterval") // if caching on interval, we need a timezone to account for calculating hours, days, and weeks. List: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+					idHashAlgorithm: process.env.CacheData_CryptIdHashAlgorithm,
+					DynamoDbMaxCacheSize_kb: parseInt(process.env.CacheData_DynamoDb_maxCacheSize_kb, 10),
+					purgeExpiredCacheEntriesAfterXHours: parseInt(process.env.CacheData_PurgeExpiredCacheEntriesAfterXHours, 10),
+					defaultExpirationExtensionOnErrorInSeconds: parseInt(process.env.CacheData_ErrorExpiresInSeconds, 10),
+					timeZoneForInterval: process.env.CacheData_TimezoneForInterval, // if caching on interval, we need a timezone to account for calculating hours, days, and weeks. List: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 				});
 
 				tools.DebugAndLog.debug("Cache: ", cache.Cache.info());

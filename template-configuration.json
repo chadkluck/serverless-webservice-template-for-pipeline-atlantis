@@ -1,15 +1,25 @@
 {
   "Parameters": {
     "UserAgent": "Web Service",
-    "ApiPathBase": "demo-$DEPLOY_STAGE$"
+    "ApiPathBase": "$PROJECT_ID$-$STAGE_ID$"
   },
   "Tags":
   {
-    "ProjectStackType": "projectstack",
-    "CodeCommitRepo": "$PROJECT_ID$",
-    "ProjectStackProjectID": "aws/$AWS_REGION$/$ACCOUNT_ID$/$PROJECT_ID$",
-    "ProjectStackProjectStageID": "aws/$AWS_REGION$/$ACCOUNT_ID$/$PROJECT_STAGE_ID$",
-    "stage": "$DEPLOY_STAGE$",
-    "env": "$DEPLOY_ENVIRONMENT$"
+    "Name": "Hello World Web Service",
+    "Application": "Hello World Web Service",
+    "Department": "Web Services",
+    "Provisioner": "CloudFormation",
+    "Atlantis": "application-infrastructure",
+    "atlantis:Prefix": "$PREFIX$",
+    "atlantis:Project": "$PREFIX$-$PROJECT_ID$",
+    "atlantis:ProjectDeploymentID": "$PREFIX$-$PROJECT_ID$-$STAGE_ID$",
+    "CloudFormationStack": "$PREFIX$-$PROJECT_ID$-$STAGE_ID$-infrastructure",
+    "CloudFormationStackArn": "arn:aws:cloudformation:$AWS_REGION$:$AWS_ACCOUNT$:stack/$PREFIX$-$PROJECT_ID$-$STAGE_ID$-infrastructure",
+    "CodeCommitRepository": "$REPOSITORY$",
+    "CodeCommitBranch": "$REPOSITORY$:$REPOSITORY_BRANCH$",
+    "CodeCommitRepositoryArn": "arn:aws:codecommit:$AWS_REGION$:$AWS_ACCOUNT$:$REPOSITORY$",
+    "Environment": "$DEPLOY_ENVIRONMENT$",
+    "Stage": "$STAGE_ID$",
+    "AlarmNotificationEmail": "$ALARM_NOTIFICATION_EMAIL$"
   }
 }
