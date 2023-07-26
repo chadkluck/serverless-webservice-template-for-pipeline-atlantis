@@ -10,6 +10,8 @@
 # NOTE: As of v2 this template no longer supports CodeStar. I just wasn't using it and including
 # it complicated the set-up and learning process. Parameters have also been refactored and the
 # resources and parameters used by the npm package Cache-Data have been called out.
+#
+# USAGE/MORE INFO: https://github.com/chadkluck/serverless-webservice-template-for-pipeline-atlantis/blob/main/README.md
 
 AWSTemplateFormatVersion: "2010-09-09"
 

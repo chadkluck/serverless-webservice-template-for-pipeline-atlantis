@@ -28,7 +28,7 @@ const { tools, cache, endpoint } = require('@chadkluck/cache-data');
 const obj = require("./classes.js");
 
 /* increase the log level - comment out when not needed  */
-tools.DebugAndLog.setLogLevel(0, "2025-10-30T04:59:59Z"); // we can increase the debug level with an expiration
+tools.DebugAndLog.setLogLevel(5, "2025-10-30T04:59:59Z"); // we can increase the debug level with an expiration
 
 /* log a cold start and keep track of init time */
 const coldStartInitTimer = new tools.Timer("coldStartTimer", true);
@@ -67,7 +67,7 @@ exports.handler = async (event, context, callback) => {
 		error during dev/test stages */
 
 		/* Log the error */
-		tools.DebugAndLog.error("500 | Unhandled Execution Error", error);
+		tools.DebugAndLog.error("500 | Unhandled Execution Error", { message: error.message, trace: error.stack });
 		
 		/* return an error message to API Gateway */
 		return {
@@ -230,7 +230,7 @@ const processRequest = async function(event, context) {
 					resolve(response);
 
 				} catch (error) {
-					tools.DebugAndLog.error("Main error", error);
+					tools.DebugAndLog.error("Main error", { message: error.message, trace: error.stack });
 					response = generateErrorResponse(new Error("Application encountered an error. Main", "500"));
 					timerMain.stop();
 					reject( response );
@@ -282,7 +282,7 @@ const processRequest = async function(event, context) {
 					resolve( new obj.Response(body, "game") );
 					
 				} catch (error) {
-					tools.DebugAndLog.error("taskGetGames CacheController error", error);
+					tools.DebugAndLog.error("taskGetGames CacheController error", { message: error.message, trace: error.stack });
 					timerTaskGetGames.stop();
 					reject( new obj.Response({ msg: "error" }, "game") );
 				};
@@ -317,19 +317,19 @@ const processRequest = async function(event, context) {
 						null
 					);
 
-					let prediction = cacheObj.getBody(true);
+					let resp = cacheObj.getBody(true);
 					let body = "";
 
 					// only return the string
-					if( prediction instanceof Object && "item" in prediction && typeof prediction.item === "string" ) {
-						body = prediction.item;
+					if( resp instanceof Object && "prediction" in resp && typeof resp.prediction === "string" ) {
+						body = resp.prediction;
 					}
 
 					timerTaskGetPrediction.stop();
 					resolve( new obj.Response(body, "prediction") );
 					
 				} catch (error) {
-					tools.DebugAndLog.error("taskGetPrediction CacheController error", error);
+					tools.DebugAndLog.error("taskGetPrediction CacheController error", { message: error.message, trace: error.stack });
 					timerTaskGetPrediction.stop();
 					reject( new obj.Response({ msg: "error" }, "prediction") );
 				};
@@ -376,7 +376,7 @@ const processRequest = async function(event, context) {
 					resolve( new obj.Response(body, "weather") );
 					
 				} catch (error) {
-					tools.DebugAndLog.error("taskGetWeather CacheController error", error);
+					tools.DebugAndLog.error("taskGetWeather CacheController error", { message: error.message, trace: error.stack });
 					timerTaskGetWeather.stop();
 					reject( new obj.Response({ msg: "error" }, "weather") );
 				};
@@ -412,7 +412,7 @@ const processRequest = async function(event, context) {
 		}
 		
 	} catch (error) {
-		tools.DebugAndLog.error("Fatal error", error);
+		tools.DebugAndLog.error("Fatal error", { message: error.message, trace: error.stack });
 		functionResponse = generateErrorResponse(new Error("Application encountered an error. Twenty Two", "500"));
 	}
 

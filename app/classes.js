@@ -305,7 +305,7 @@ class Config extends tools._ConfigSuperClass {
 					DynamoDbMaxCacheSize_kb: parseInt(process.env.CacheData_DynamoDb_maxCacheSize_kb, 10),
 					purgeExpiredCacheEntriesAfterXHours: parseInt(process.env.CacheData_PurgeExpiredCacheEntriesAfterXHours, 10),
 					defaultExpirationExtensionOnErrorInSeconds: parseInt(process.env.CacheData_ErrorExpiresInSeconds, 10),
-					timeZoneForInterval: process.env.CacheData_TimezoneForInterval, // if caching on interval, we need a timezone to account for calculating hours, days, and weeks. List: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+					timeZoneForInterval: process.env.CacheData_TimeZoneForInterval, // if caching on interval, we need a timezone to account for calculating hours, days, and weeks. List: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 				});
 
 				tools.DebugAndLog.debug("Cache: ", cache.Cache.info());
@@ -315,7 +315,7 @@ class Config extends tools._ConfigSuperClass {
 				
 				resolve(true);
 			} catch (error) {
-				tools.DebugAndLog.error("Could not initialize Config", error);
+				tools.DebugAndLog.error("Could not initialize Config", { message: error.message, trace: error.stack });
 				reject(false);
 			};
 			
