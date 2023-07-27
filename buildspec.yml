@@ -18,7 +18,7 @@ phases:
 
       # Generate Key in SSM for cache-proxy
       - chmod a+x tools/generate-put-keys.sh
-      - tools/generate-put-keys.sh $PARAM_STORE_PATH "256" $AWS_REGION $AWS_ACCOUNT #keylength needs to correspond with default (or override) specified for CryptSecureDataAlg in template.yml
+      - tools/generate-put-keys.sh $PARAM_STORE_PATH "256" $PREFIX $PROJECT_ID $STAGE_ID #keylength needs to correspond with default (or override) specified for CryptSecureDataAlg in template.yml
 
   build:
     commands:

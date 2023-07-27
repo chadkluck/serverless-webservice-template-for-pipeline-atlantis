@@ -275,7 +275,7 @@ class Config extends tools._ConfigSuperClass {
 					parameters: {
 						q: this.#settings.weather.q, // note how we are bringing this in from settings.json
 						units: this.#settings.weather.units, // note how we are bringing this in from settings.json
-						appid: ("apikey_weather" in params.app ? params.app.apikey_weather : "") // this is set from the SSM Parameters brought in
+						appid: ("apikey_weather" in params.app ? params.app.apikey_weather : "BLANK") // this is set from the SSM Parameters brought in
 					},
 					cache: [
 						{
