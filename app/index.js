@@ -356,7 +356,7 @@ const processRequest = async function(event, context) {
 
 					let body = {};
 
-					if (conn.parameters.appid !== "") {
+					if (conn.parameters.appid !== "BLANK") {
 
 						let cacheCfg = connection.getCacheProfile("default");
 
@@ -370,6 +370,7 @@ const processRequest = async function(event, context) {
 						body = cacheObj.getBody(true);
 					} else {
 						body = { message: "weather api key not set" };
+						tools.DebugAndLog.warn("weather api key not set - please update in SSM Parameter Store");
 					}
 
 					timerTaskGetWeather.stop();
