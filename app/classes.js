@@ -209,7 +209,7 @@ class Config extends tools._ConfigSuperClass {
 					[
 						{
 							"group": "app", // so we can do params.app.weatherapikey later
-							"path": process.env.paramStorePath // Lambda environment variable
+							"path": process.env.paramStore // Lambda environment variable
 						}
 					]
 				);
@@ -275,7 +275,7 @@ class Config extends tools._ConfigSuperClass {
 					parameters: {
 						q: this.#settings.weather.q, // note how we are bringing this in from settings.json
 						units: this.#settings.weather.units, // note how we are bringing this in from settings.json
-						appid: ("apikey_weather" in params.app ? params.app.apikey_weather : "BLANK") // this is set from the SSM Parameters brought in
+						appid: ("Weather_APIKey" in params.app ? params.app.Weather_APIKey : "BLANK") // this is set from the SSM Parameters brought in
 					},
 					cache: [
 						{
@@ -300,7 +300,7 @@ class Config extends tools._ConfigSuperClass {
 					dynamoDbTable: process.env.CacheData_DynamoDbTable,
 					s3Bucket: process.env.CacheData_S3Bucket,
 					secureDataAlgorithm: process.env.CacheData_CryptSecureDataAlgorithm,
-					secureDataKey: Buffer.from(params.app.crypt_secureDataKey, cache.Cache.CRYPT_ENCODING),
+					secureDataKey: Buffer.from(params.app.CacheData_SecureDataKey, cache.Cache.CRYPT_ENCODING),
 					idHashAlgorithm: process.env.CacheData_CryptIdHashAlgorithm,
 					DynamoDbMaxCacheSize_kb: parseInt(process.env.CacheData_DynamoDb_maxCacheSize_kb, 10),
 					purgeExpiredCacheEntriesAfterXHours: parseInt(process.env.CacheData_PurgeExpiredCacheEntriesAfterXHours, 10),

@@ -100,5 +100,5 @@ KEY_LEN=$((BITS/DIVBY)) #divide number of bits needed by 4 because that is what 
 
 TAGS="[{\"Key\":\"Atlantis\",\"Value\":\"application-infrastructure\"},{\"Key\":\"atlantis:Prefix\",\"Value\":\"$PREFIX\"},{\"Key\":\"atlantis:Project\",\"Value\":\"$PREFIX-$PROJECT_ID\"},{\"Key\":\"atlantis:ProjectDeploymentID\",\"Value\":\"$PREFIX-$PROJECT_ID-$STAGE_ID\"}]"
 
-putGeneratedKey "crypt_secureDataKey"
-putBlankKey "apikey_weather"
+putGeneratedKey "CacheData_SecureDataKey"
+putBlankKey "Weather_APIKey"
