@@ -874,5 +874,5 @@ Outputs:
     Description: "S3 Bucket Web Console"
     Value: !Sub "https://s3.console.aws.amazon.com/s3/buckets/${CacheDataS3Bucket}?region=${AWS::Region}"
   ParameterStore:
-    Description: "Hierarchy for App Parameters in SSM Parameter Store"
-    Value: !Sub "${ParameterStoreHierarchy}"
+    Description: "SSM Parameter Store"
+    Value: !Sub "https://${AWS::Region}.console.aws.amazon.com/systems-manager/parameters/?region=${AWS::Region}&tab=Table#list_parameter_filters=Name:Contains:${ParameterStoreHierarchy}"
