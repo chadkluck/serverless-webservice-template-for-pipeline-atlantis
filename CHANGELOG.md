@@ -22,7 +22,7 @@ All notable changes to this project will be documented in this file.
 
 If you have already installed this application you will need to make a change to your application's CloudFormation template.yml file.
 
-Copy `UserTableWriteCapacityScalableTarget` and `UserTableWriteScalingPolicy` from the most recent template in the repository and include it in your own template. Make sure the YAML indents are properly formatted.
+Copy `CacheTableWriteCapacityScalableTarget` and `CacheTableWriteScalingPolicy` from the most recent template in the repository and include it in your own template. Make sure the YAML indents are properly formatted.
 
 ## [Unreleased]
 ### Updates
