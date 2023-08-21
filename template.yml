@@ -309,7 +309,7 @@ Resources:
         "Fn::Transform":
           Name: "AWS::Include"
           Parameters:
-            Location: ./swagger.yml
+            Location: ./template-swagger.yml
             
   # -- Lambda Function --
   AppFunction:
@@ -492,30 +492,16 @@ Resources:
 
   # -- Cache-Data DynamoDb Scaling --
 
-  CacheDataTableWriteCapacityScalableTarget: 
-    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
-    Properties: 
-      DependsOn: CacheDataDynamoDbTable
-      MaxCapacity: 100
-      MinCapacity: 5   
-      ResourceId: !Sub table/${CacheDataDynamoDbTable}
-      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/dynamodb.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_DynamoDBTable
-      ScalableDimension: "dynamodb:table:WriteCapacityUnits"
-      ServiceNamespace: dynamodb
-
-  CacheDataTableWriteScalingPolicy: 
+  CacheDataTableScalingPolicy: 
     Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
     Properties: 
-      PolicyName: WriteAutoScalingPolicy
+      PolicyName: CacheDataAutoScalingPolicy
       PolicyType: TargetTrackingScaling
-      ScalingTargetId: 
-        Ref: CacheDataTableWriteCapacityScalableTarget
+      ScalingTargetId: !Sub table/${CacheDataDynamoDbTable}
       TargetTrackingScalingPolicyConfiguration: 
         TargetValue: 70
         ScaleInCooldown: 60
         ScaleOutCooldown: 60
-      PredefinedMetricSpecification: 
-        PredefinedMetricType: DynamoDBWriteCapacityUtilization
 
   # -- Cache-Data S3 Bucket --
   AppDataS3Bucket:

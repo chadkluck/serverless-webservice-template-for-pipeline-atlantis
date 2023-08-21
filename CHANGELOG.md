@@ -22,8 +22,31 @@ All notable changes to this project will be documented in this file.
 
 If you have already installed this application you will need to make a change to your application's CloudFormation template.yml file.
 
-Copy `CacheTableWriteCapacityScalableTarget` and `CacheTableWriteScalingPolicy` from the most recent template in the repository and include it in your own template. Make sure the YAML indents are properly formatted.
+Copy `CacheDataTableScalingPolicy` from the most recent template in the repository and include it in your own template. Make sure the YAML indents are properly formatted.
 
-## [Unreleased]
+## 2023-08-20 Atlantis Pipeline v2 Compatible
+
+### Update
+
+- Now Atlantis Pipeline v2 Compatible
+
+### Apply update to existing installs
+
+1. Update deploy stack template to v2
+2. Update infrastructure template
+   - Update parameters (they have been renamed and re-organized)
+   - Project Stage ID has been separated out so be sure to use `${Prefix}-${ProjectId}-${StageId}` when naming resources
+   - Lambda environment variables
+   - Updated Output section
+3. Update code
+   - Since the environment variables were updated, they need to be updated in your code when they are referenced
+4. Update Buildspec.yml
+5. Update template-configuration.json
+6. Rename `swagger.yml` to `template-swagger.yml`
+7. Update /tools/generate-put-keys.sh
+
+The re-organization was drastic but should provide a more stable path for future updates.
+
+## Unreleased
 ### Updates
 ### Fixes
