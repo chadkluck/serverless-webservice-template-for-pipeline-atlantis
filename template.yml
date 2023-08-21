@@ -18,7 +18,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform:
 - AWS::Serverless-2016-10-31
 
-Description: "Web Service CloudFormation Application Infrastructure Template"
+Description: "CloudFormation Web Service  Application Infrastructure Template"
 
 # =============================================================================
 # META DATA
@@ -201,6 +201,7 @@ Parameters:
 
   # ---------------------------------------------------------------------------
   # Cache-Data Parameters
+  # From: https://www.npmjs.com/package/@chadkluck/cache-data
 
   CacheDataDbMaxCacheSizeInKB:
     Type: Number
@@ -325,7 +326,7 @@ Resources:
           user_agent_identifier: !Ref UserAgent
           lambdaTimeoutInSeconds: !Ref FunctionTimeOutInSeconds # so we can calculate any external connection timeout in our code
 
-          # Cache-Data settings
+          # Cache-Data settings (from: https://www.npmjs.com/package/@chadkluck/cache-data)
           CacheData_DynamoDbTable: !Ref CacheDataDynamoDbTable
           CacheData_S3Bucket: !Ref CacheDataS3Bucket
           CacheData_CryptSecureDataAlgorithm: !Ref CacheDataCryptSecureDataAlg
@@ -392,7 +393,7 @@ Resources:
             Resource: 
             - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${ParameterStoreHierarchy}*"
 
-          # cache-data S3 bucket
+          # cache-data S3 bucket (from: https://www.npmjs.com/package/@chadkluck/cache-data)
           - Sid: LambdaAccessToS3BucketCacheData
             Action:
             - s3:PutObject
@@ -401,7 +402,7 @@ Resources:
             Effect: Allow
             Resource: !Join [ '', [ !GetAtt CacheDataS3Bucket.Arn, '/cache/*' ] ]
 
-          # cache-data DynamoDb table
+          # cache-data DynamoDb table (from: https://www.npmjs.com/package/@chadkluck/cache-data)
           - Sid: LambdaAccessToDynamoDBTableCacheData
             Action:
             - dynamodb:GetItem
