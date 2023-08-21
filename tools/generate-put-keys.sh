@@ -11,12 +11,11 @@
 usage() {
   {
     echo "Usage:"
-#    echo "   ${BASH_SOURCE[0]} <PARAM_NAME_PREFIX> <KEY_LEN> <PREFIX> <PROJECT_ID> <STAGE_ID>"
-    echo "   <SCRIPT.sh> <PARAM_NAME_PREFIX> <KEY_LEN> <PREFIX> <PROJECT_ID> <STAGE_ID>"
-    echo "      PARAM_NAME_PREFIX"
-    echo "         The prefix to use for the SSM variable."
+    echo "   ${BASH_SOURCE[0]} <PARAM_NAME_HIERARCHY> <KEY_LEN> <PREFIX> <PROJECT_ID> <STAGE_ID>"
+    echo "      PARAM_NAME_HIERARCHY"
+    echo "         The hierarchy to use for the SSM parameter."
     echo "         For example, '/WebApp/labs/'"
-    echo "         will generate 1 parameter to store named '/WebApp/labs/<PROJECT_ID>/crypt_secureDataKey'"
+    echo "         will generate 1 parameter to store named '/WebApp/labs/PROD/prefix-project_id-stage_id/crypt_secureDataKey'"
     echo "      KEY_LEN"
     echo "         The number of bits needed"
     echo "         For example, if you are using AES256 you need a key that is 256 bits. So you would enter 256"
