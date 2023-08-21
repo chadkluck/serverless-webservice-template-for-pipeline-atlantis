@@ -274,7 +274,7 @@ Globals:
   Function:
     Timeout: !Ref FunctionTimeOutInSeconds
     MemorySize: !Ref FunctionMaxMemoryInMB
-    Runtime: nodejs14.x
+    Runtime: nodejs18.x
     AutoPublishAlias: live
     DeploymentPreference:
       Enabled: !If [ IsProduction, True,  False] #Gradual deployment only if in production so DEV and TEST aren't hindered
