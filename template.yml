@@ -466,6 +466,7 @@ Resources:
 
   # ---------------------------------------------------------------------------
   # Resources for Lambda Function - Cache-Data
+  # From: https://www.npmjs.com/package/@chadkluck/cache-data
 
   # -- Cache-Data DynamoDb --
   CacheDataDynamoDbTable:
@@ -488,33 +489,7 @@ Resources:
       SSESpecification:
         SSEEnabled: true
 
-  # -- DynamoDb Auto Scaling
-  # See https://aws.amazon.com/blogs/database/how-to-use-aws-cloudformation-to-configure-auto-scaling-for-amazon-dynamodb-tables-and-indexes/
-  UserTableWriteCapacityScalableTarget: 
-    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
-    DependsOn: AppDataDynamoDbTable
-    Properties: 
-      MaxCapacity: 100
-      MinCapacity: 5
-      ResourceId: !Sub table/${AppDataDynamoDbTable}
-      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/dynamodb.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_DynamoDBTable
-      ScalableDimension: "dynamodb:table:WriteCapacityUnits"
-      ServiceNamespace: dynamodb
-
-  UserTableWriteScalingPolicy: 
-    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
-    Properties: 
-      PolicyName: WriteAutoScalingPolicy
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref: UserTableWriteCapacityScalableTarget
-      TargetTrackingScalingPolicyConfiguration: 
-        TargetValue: 80
-        ScaleInCooldown: 60
-        ScaleOutCooldown: 60
-        PredefinedMetricSpecification: 
-          PredefinedMetricType: DynamoDBWriteCapacityUtilization
-
-  # -- S3 Bucket for Lambda App Data Storage --
+  # -- Cache-Data S3 Bucket --
   AppDataS3Bucket:
     Type: AWS::S3::Bucket
     Description: S3 Bucket to store Cache-Data too big for DynamoDb. Cache-Data stores objects in /cache directory. The application may store additional data outside of the cache directory.
@@ -542,7 +517,7 @@ Resources:
             NoncurrentVersionExpirationInDays: !Ref CacheDataPurgeAgeOfCachedBucketObjInDays
             Status: "Enabled" # Enable only if you are going to use this LifecycleConfiguration
 
-  # -- S3 Bucket Policy for Lambda App Data Storage --
+  # -- Cache-Data S3 Bucket Policy --
   CacheDataS3BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
