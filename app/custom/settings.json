@@ -1,6 +1,5 @@
 {
 	"settings": {
-		"timeZoneForCacheInterval": "America/Chicago",
 		"language": "en-us",
 		"weather": {
 			"q": "Chicago",

@@ -209,7 +209,7 @@ class Config extends tools._ConfigSuperClass {
 					[
 						{
 							"group": "app", // so we can do params.app.weatherapikey later
-							"path": process.env.paramStorePath // Lambda environment variable
+							"path": process.env.paramStore // Lambda environment variable
 						}
 					]
 				);
@@ -275,7 +275,7 @@ class Config extends tools._ConfigSuperClass {
 					parameters: {
 						q: this.#settings.weather.q, // note how we are bringing this in from settings.json
 						units: this.#settings.weather.units, // note how we are bringing this in from settings.json
-						appid: ("apikey_weather" in params.app ? params.app.apikey_weather : "") // this is set from the SSM Parameters brought in
+						appid: ("Weather_APIKey" in params.app ? params.app.Weather_APIKey : "BLANK") // this is set from the SSM Parameters brought in
 					},
 					cache: [
 						{
@@ -297,15 +297,15 @@ class Config extends tools._ConfigSuperClass {
 
 				// Cache settings
 				cache.Cache.init({
-					dynamoDbTable: process.env.DynamoDb_table_cache,
-					s3Bucket: process.env.S3_bucket_cache,
-					secureDataAlgorithm: process.env.crypt_secureDataAlgorithm,
-					secureDataKey: Buffer.from(params.app.crypt_secureDataKey, cache.Cache.CRYPT_ENCODING),
-					idHashAlgorithm: process.env.crypt_idHashAlgorithm,
-					DynamoDbMaxCacheSize_kb: parseInt(process.env.DynamoDb_maxCacheSize_kb, 10),
-					purgeExpiredCacheEntriesAfterXHours: parseInt(process.env.purgeExpiredCacheEntriesAfterXHours, 10),
-					defaultExpirationExtensionOnErrorInSeconds: parseInt(process.env.errorExpirationInSeconds, 10),
-					timeZoneForInterval: Config.getSettings("timeZoneForCacheInterval") // if caching on interval, we need a timezone to account for calculating hours, days, and weeks. List: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+					dynamoDbTable: process.env.CacheData_DynamoDbTable,
+					s3Bucket: process.env.CacheData_S3Bucket,
+					secureDataAlgorithm: process.env.CacheData_CryptSecureDataAlgorithm,
+					secureDataKey: Buffer.from(params.app.CacheData_SecureDataKey, cache.Cache.CRYPT_ENCODING),
+					idHashAlgorithm: process.env.CacheData_CryptIdHashAlgorithm,
+					DynamoDbMaxCacheSize_kb: parseInt(process.env.CacheData_DynamoDb_maxCacheSize_kb, 10),
+					purgeExpiredCacheEntriesAfterXHours: parseInt(process.env.CacheData_PurgeExpiredCacheEntriesAfterXHours, 10),
+					defaultExpirationExtensionOnErrorInSeconds: parseInt(process.env.CacheData_ErrorExpiresInSeconds, 10),
+					timeZoneForInterval: process.env.CacheData_TimeZoneForInterval, // if caching on interval, we need a timezone to account for calculating hours, days, and weeks. List: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 				});
 
 				tools.DebugAndLog.debug("Cache: ", cache.Cache.info());
@@ -315,7 +315,7 @@ class Config extends tools._ConfigSuperClass {
 				
 				resolve(true);
 			} catch (error) {
-				tools.DebugAndLog.error("Could not initialize Config", error);
+				tools.DebugAndLog.error("Could not initialize Config", { message: error.message, trace: error.stack });
 				reject(false);
 			};
 			

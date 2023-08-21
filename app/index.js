@@ -1,18 +1,19 @@
 /* 
 *******************************************************************************
-Serverless Demo Template with internal Cache Restful API
+Serverless API Web Service with Internal Cache
 *******************************************************************************
 
-Version: 0.1.0-20220723-1800
-Last Modified: 2023-07-23
-Author: Chad Kluck, University of St. Thomas Libraries
+Version: 1.0.0-20230722-1800
+Last Modified: 2023-07-22
+Author: Chad Leigh Kluck, chadkluck.me
 
-GitHub: https://github.com/USTLibraries
+GitHub: https://github.com/chadkluck
 
 -------------------------------------------------------------------------------
 
 This is a template for an AWS Lambda function that provides an api service
-via API Gateway. Internal caching utilizes DynamoDb and S3.
+via API Gateway. Internal caching utilizes DynamoDb and S3 through the
+npm package @chadkluck/cache-data .
 
 -------------------------------------------------------------------------------
 
@@ -27,7 +28,7 @@ const { tools, cache, endpoint } = require('@chadkluck/cache-data');
 const obj = require("./classes.js");
 
 /* increase the log level - comment out when not needed  */
-tools.DebugAndLog.setLogLevel(0, "2025-10-30T04:59:59Z"); // we can increase the debug level with an expiration
+tools.DebugAndLog.setLogLevel(5, "2025-10-30T04:59:59Z"); // we can increase the debug level with an expiration
 
 /* log a cold start and keep track of init time */
 const coldStartInitTimer = new tools.Timer("coldStartTimer", true);
@@ -66,7 +67,7 @@ exports.handler = async (event, context, callback) => {
 		error during dev/test stages */
 
 		/* Log the error */
-		tools.DebugAndLog.error("500 | Unhandled Execution Error", error);
+		tools.DebugAndLog.error("500 | Unhandled Execution Error", { message: error.message, trace: error.stack });
 		
 		/* return an error message to API Gateway */
 		return {
@@ -229,7 +230,7 @@ const processRequest = async function(event, context) {
 					resolve(response);
 
 				} catch (error) {
-					tools.DebugAndLog.error("Main error", error);
+					tools.DebugAndLog.error("Main error", { message: error.message, trace: error.stack });
 					response = generateErrorResponse(new Error("Application encountered an error. Main", "500"));
 					timerMain.stop();
 					reject( response );
@@ -281,7 +282,7 @@ const processRequest = async function(event, context) {
 					resolve( new obj.Response(body, "game") );
 					
 				} catch (error) {
-					tools.DebugAndLog.error("taskGetGames CacheController error", error);
+					tools.DebugAndLog.error("taskGetGames CacheController error", { message: error.message, trace: error.stack });
 					timerTaskGetGames.stop();
 					reject( new obj.Response({ msg: "error" }, "game") );
 				};
@@ -316,19 +317,19 @@ const processRequest = async function(event, context) {
 						null
 					);
 
-					let prediction = cacheObj.getBody(true);
+					let resp = cacheObj.getBody(true);
 					let body = "";
 
 					// only return the string
-					if( prediction instanceof Object && "item" in prediction && typeof prediction.item === "string" ) {
-						body = prediction.item;
+					if( resp instanceof Object && "prediction" in resp && typeof resp.prediction === "string" ) {
+						body = resp.prediction;
 					}
 
 					timerTaskGetPrediction.stop();
 					resolve( new obj.Response(body, "prediction") );
 					
 				} catch (error) {
-					tools.DebugAndLog.error("taskGetPrediction CacheController error", error);
+					tools.DebugAndLog.error("taskGetPrediction CacheController error", { message: error.message, trace: error.stack });
 					timerTaskGetPrediction.stop();
 					reject( new obj.Response({ msg: "error" }, "prediction") );
 				};
@@ -355,7 +356,7 @@ const processRequest = async function(event, context) {
 
 					let body = {};
 
-					if (conn.parameters.appid !== "") {
+					if (conn.parameters.appid !== "BLANK") {
 
 						let cacheCfg = connection.getCacheProfile("default");
 
@@ -369,13 +370,14 @@ const processRequest = async function(event, context) {
 						body = cacheObj.getBody(true);
 					} else {
 						body = { message: "weather api key not set" };
+						tools.DebugAndLog.warn("weather api key not set - please update in SSM Parameter Store");
 					}
 
 					timerTaskGetWeather.stop();
 					resolve( new obj.Response(body, "weather") );
 					
 				} catch (error) {
-					tools.DebugAndLog.error("taskGetWeather CacheController error", error);
+					tools.DebugAndLog.error("taskGetWeather CacheController error", { message: error.message, trace: error.stack });
 					timerTaskGetWeather.stop();
 					reject( new obj.Response({ msg: "error" }, "weather") );
 				};
@@ -411,7 +413,7 @@ const processRequest = async function(event, context) {
 		}
 		
 	} catch (error) {
-		tools.DebugAndLog.error("Fatal error", error);
+		tools.DebugAndLog.error("Fatal error", { message: error.message, trace: error.stack });
 		functionResponse = generateErrorResponse(new Error("Application encountered an error. Twenty Two", "500"));
 	}
 

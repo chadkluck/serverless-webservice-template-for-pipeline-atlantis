@@ -1,5 +1,32 @@
 version: 0.2
 
+# BUILD ENVIRONMENT VARIABLES are specified in the pipeline-toolchain.yml template.
+# Search for 'EnvironmentVariables' under AWS::CodeBuild::Project in the template.
+#
+# AWS_PARTITION
+# AWS_REGION
+# AWS_ACCOUNT
+# S3_DEPLOY_BUCKET
+# PREFIX
+# PROJECT_ID
+# STAGE_ID
+# REPOSITORY
+# REPOSITORY_BRANCH
+# PARAM_STORE_HIERARCHY
+# DEPLOY_ENVIRONMENT
+# ALARM_NOTIFICATION_EMAIL
+#
+# Check your project's CodeBuild Environment variables at:
+# CodePipeline > CodeBuild > Build details > Environment/Environment variables
+# to see a current list of build environment variables.
+#
+# The default pipeline-toolchain.yml template allows access to ssm parameter store 
+# during the execution of this buildspec.yml.
+#
+# Note that secure parameters should not be used during the build where they might be stored in 
+# build logs (such as CF template outputs). Secure parameters should only be used during execution 
+# and never stored in an environment variable or passed as a parameter to a template.
+
 phases:
   install:
     runtime-versions:
@@ -18,19 +45,18 @@ phases:
 
       # Generate Key in SSM for cache-proxy
       - chmod a+x tools/generate-put-keys.sh
-      - tools/generate-put-keys.sh $PARAM_STORE_PATH "256" $AWS_REGION $ACCOUNT_ID #keylength needs to correspond with default (or override) specified for CryptSecureDataAlg in template.yml
-
-      # Discover and run unit tests in the 'tests' directory
-      #- npm test
+      - tools/generate-put-keys.sh $PARAM_STORE_HIERARCHY "256" $PREFIX $PROJECT_ID $STAGE_ID #keylength needs to correspond with default (or override) specified for CryptSecureDataAlg in template.yml
 
   build:
     commands:
 
-      # Use AWS SAM to package the application using AWS CloudFormation
-      - aws cloudformation package --template template.yml --s3-bucket $S3_BUCKET --output-template template-export.yml
+      # Use CloudFormation to package the application infrastructure and code that was placed in the S3 Deploy Bucket
+      - aws cloudformation package --template template.yml --s3-bucket $S3_DEPLOY_BUCKET --output-template template-export.yml
 
-      # Update the AWS Partition, AWS Region, account ID and project ID in the project ARN in template-configuration.json file so AWS CloudFormation can tag project resources.
-      - sed -i.bak 's|\$PARTITION\$|'${PARTITION}'|g;s|\$AWS_REGION\$|'${AWS_REGION}'|g;s|\$ACCOUNT_ID\$|'${ACCOUNT_ID}'|g;s|\$PROJECT_ID\$|'${PROJECT_ID}'|g;s|\$PROJECT_STAGE_ID\$|'${PROJECT_STAGE_ID}'|g;s|\$DEPLOY_ENVIRONMENT\$|'${DEPLOY_ENVIRONMENT}'|g;s|\$DEPLOY_STAGE\$|'${DEPLOY_STAGE}'|g' template-configuration.json
+      # Do a search/replace using the linux sed command in the template-configuration.json file so AWS CloudFormation can tag project resources.
+      - sed -i.bak 's|\$AWS_PARTITION\$|'${AWS_PARTITION}'|g;s|\$AWS_REGION\$|'${AWS_REGION}'|g;s|\$AWS_ACCOUNT\$|'${AWS_ACCOUNT}'|g;s|\$PREFIX\$|'${PREFIX}'|g;s|\$PROJECT_ID\$|'${PROJECT_ID}'|g;s|\$STAGE_ID\$|'${STAGE_ID}'|g;s|\$REPOSITORY\$|'${REPOSITORY}'|g;s|\$REPOSITORY_BRANCH\$|'${REPOSITORY_BRANCH}'|g;s|\$DEPLOY_ENVIRONMENT\$|'${DEPLOY_ENVIRONMENT}'|g;s|\$ALARM_NOTIFICATION_EMAIL\$|'${ALARM_NOTIFICATION_EMAIL}'|g;s|\$PARAM_STORE_HIERARCHY\$|'${PARAM_STORE_HIERARCHY}'|g' template-configuration.json
+
+      # You can add additional tags and parameters to template-configuration.json
 
 artifacts:
   files:
