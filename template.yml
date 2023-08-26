@@ -333,7 +333,7 @@ Resources:
           CacheData_CryptIdHashAlgorithm: !Ref CacheDataCryptIdHashAlgorithm
           CacheData_DynamoDb_maxCacheSize_kb: !Ref CacheDataDbMaxCacheSizeInKB
           CacheData_PurgeExpiredCacheEntriesAfterXHours: !Ref CacheDataPurgeExpiredCacheEntriesInHours
-          CacheData_ErrorExpiresInSeconds: !Ref CacheDataErrorExpirationInSeconds
+          CacheData_ErrorExpirationInSeconds: !Ref CacheDataErrorExpirationInSeconds
           CacheData_TimeZoneForInterval: !Ref CacheDataTimeZoneForInterval
 
       Events:
@@ -504,7 +504,7 @@ Resources:
         ScaleOutCooldown: 60
 
   # -- Cache-Data S3 Bucket --
-  AppDataS3Bucket:
+  CacheDataS3Bucket:
     Type: AWS::S3::Bucket
     Description: S3 Bucket to store Cache-Data too big for DynamoDb. Cache-Data stores objects in /cache directory. The application may store additional data outside of the cache directory.
     Properties:
