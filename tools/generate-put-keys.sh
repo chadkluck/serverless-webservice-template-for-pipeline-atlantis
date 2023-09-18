@@ -97,7 +97,7 @@ BITS=$2
 DIVBY=4
 KEY_LEN=$((BITS/DIVBY)) #divide number of bits needed by 4 because that is what hex will give us
 
-TAGS="[{\"Key\":\"Atlantis\",\"Value\":\"application-infrastructure\"},{\"Key\":\"atlantis:Prefix\",\"Value\":\"$PREFIX\"},{\"Key\":\"atlantis:Project\",\"Value\":\"$PREFIX-$PROJECT_ID\"},{\"Key\":\"atlantis:ProjectDeploymentID\",\"Value\":\"$PREFIX-$PROJECT_ID-$STAGE_ID\"}]"
+TAGS="[{\"Key\":\"Atlantis\",\"Value\":\"application-infrastructure\"},{\"Key\":\"atlantis:Prefix\",\"Value\":\"$PREFIX\"},{\"Key\":\"atlantis:Application\",\"Value\":\"$PREFIX-$PROJECT_ID\"},{\"Key\":\"atlantis:ApplicationDeploymentId\",\"Value\":\"$PREFIX-$PROJECT_ID-$STAGE_ID\"},{\"Key\":\"Name\",\"Value\":\"$PREFIX-$PROJECT_ID\"}]"
 
 putGeneratedKey "CacheData_SecureDataKey"
 putBlankKey "Weather_APIKey"
