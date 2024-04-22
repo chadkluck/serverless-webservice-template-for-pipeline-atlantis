@@ -1,0 +1,60 @@
+            {
+                    "type": "metric",
+                    "x": 18,
+                    "y": 3,
+                    "width": 6,
+                    "height": 3,
+                    "properties": {
+                        "metrics": [
+                            [ { "expression": "SEARCH('{AWS/Lambda,FunctionName}', 'Average', 3600)", "id": "e1", "visible": false, "region": "${AWS::Region}" } ],
+                            [ "AWS/Lambda", "Invocations", "FunctionName", "${AppFunction}", { "id": "m2", "color": "#1f77b4", "region": "${AWS::Region}" } ],
+                            [ "AWS/Lambda", "Errors", "FunctionName", "${AppFunction}", { "id": "m4", "color": "#d62728", "region": "${AWS::Region}" } ]
+                        ],
+                        "view": "singleValue",
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": "Lambda Invocations",
+                        "period": 3600,
+                        "stat": "Sum",
+                        "setPeriodToTimeRange": true,
+                        "sparkline": false,
+                        "trend": false
+                    }
+                },
+                {
+                    "height": 3,
+                    "width": 6,
+                    "y": 6,
+                    "x": 18,
+                    "type": "metric",
+                    "properties": {
+                        "metrics": [
+                            [ { "expression": "SEARCH('{AWS/ApiGateway,ApiName}', 'Average', 3600)", "id": "e1", "visible": false, "region": "${AWS::Region}" } ],
+                            [ "AWS/ApiGateway", "4XXError", "ApiName", "${Prefix}-${ProjectId}-${StageId}-WebApi", { "id": "m2", "color": "#1f77b4", "region": "${AWS::Region}" } ],
+                            [ ".", "5XXError", ".", ".", { "id": "m4", "color": "#d62728", "region": "${AWS::Region}" } ]
+                        ],
+                        "view": "singleValue",
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": "API Gateway Error Responses",
+                        "period": 3600,
+                        "stat": "Sum",
+                        "setPeriodToTimeRange": true,
+                        "sparkline": false,
+                        "trend": false
+                    }
+                },
+                {
+                    "height": 4,
+                    "width": 6,
+                    "y": 9,
+                    "x": 18,
+                    "type": "alarm",
+                    "properties": {
+                        "title": "Alarms",
+                        "alarms": [
+                            "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:${AppFunctionErrorsAlarm}",
+                            "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:${ApiGatewayErrorsAlarm}"
+                        ]
+                    }
+                },
