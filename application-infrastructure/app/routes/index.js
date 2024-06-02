@@ -1,86 +1,5 @@
-/* 
-*******************************************************************************
-Serverless API Web Service with Internal Cache
-*******************************************************************************
-
-Version: 1.0.0-20230722-1800
-Last Modified: 2023-07-22
-Author: Chad Leigh Kluck, chadkluck.me
-
-GitHub: https://github.com/chadkluck
-
--------------------------------------------------------------------------------
-
-This is a template for an AWS Lambda function that provides an api service
-via API Gateway. Internal caching utilizes DynamoDb and S3 through the
-npm package @chadkluck/cache-data .
-
--------------------------------------------------------------------------------
-
-For other notes and info, refer to README.md
-		
-*******************************************************************************
-*/
-
-"use strict";
-
-const { tools, cache, endpoint } = require('@chadkluck/cache-data');
-const obj = require("./classes.js");
-
-/* increase the log level - comment out when not needed  */
-tools.DebugAndLog.setLogLevel(5, "2025-10-30T04:59:59Z"); // we can increase the debug level with an expiration
-
-/* log a cold start and keep track of init time */
-const coldStartInitTimer = new tools.Timer("coldStartTimer", true);
-
-/* initialize the Config */
-obj.Config.init(); // we need to await completion in the async call function - at least until node 14
-
-/**
- * Lambda function handler
- * 
- * @param {object} event Lambda event - doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
- * @param {object} context Lambda context - doc: https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-context.html 
- * @param {object} callback Callback function to submit response
- * @returns {object} API Gateway Lambda Proxy Output Format doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
- */
-exports.handler = async (event, context, callback) => {
-
-	try {
-
-		/* wait for CONFIG to be settled as we need it before continuing. */
-		await obj.Config.promise();
-
-		/* If the cold start init timer is running, stop it and log. This won't run again until next cold start */
-		if (coldStartInitTimer.isRunning()) { tools.DebugAndLog.log(coldStartInitTimer.stop(),"COLDSTART"); }
-
-		/* Process the request and wait for result */
-		const response = await processRequest(event, context);
-
-		/* Send the result back to API Gateway */
-		callback(null, response);
-
-	} catch (error) {
-
-		/* This should never happen as processRequest() does it's own handling.
-		This is an error outside of processRequest() and is usually a syntax
-		error during dev/test stages */
-
-		/* Log the error */
-		tools.DebugAndLog.error("500 | Unhandled Execution Error", { message: error.message, trace: error.stack });
-		
-		/* return an error message to API Gateway */
-		return {
-			statusCode: 500,
-			body: JSON.stringify({
-				message: 'Error initializing request - 1701-D' // 1701-D just so we know it is an app and not API Gateway error
-			}),
-			headers: {'content-type': 'application/json'}
-		};
-
-	}
-
-};
+const Utils = require("../utils");
+const {Config} = require("../config");
 
 /**
  * Process the request
@@ -88,17 +7,17 @@ exports.handler = async (event, context, callback) => {
  * @param {array} event The event passed to the lambda function
  * @param {array} context The context passed to the lambda function
  */
-const processRequest = async function(event, context) {
+const process = async function(event, context) {
 
 	/**
 	 * Contains information about the request event
 	 */
-	const REQ = new obj.Request(event);
+	const REQ = new Utils.Request(event);
 
 	/**
 	 * Timer used for logging execution time
 	 */
-	const timer = new tools.Timer("Response timer", true);
+	const timer = new Utils.Timer("Response timer", true);
 
 	/* 
 	*******************************************************************************
@@ -185,7 +104,7 @@ const processRequest = async function(event, context) {
 		 */
 		const main = async () => {
 
-			const timerMain = new tools.Timer("Main", true);
+			const timerMain = new Utils.Timer("Main", true);
 
 			return new Promise(async (resolve, reject) => {
 
@@ -202,7 +121,7 @@ const processRequest = async function(event, context) {
 					/* this will return everything promised into an indexed array */
 					let appCompletedTasks = await Promise.all(appTasks);
 
-					// tools.TestResponseDataModel.run(); // demo/test ResponseDataModel
+					// Utils.TestResponseDataModel.run(); // demo/test ResponseDataModel
 
 					/**
 					 *  Responses from each task are collected into this Response object 
@@ -212,7 +131,7 @@ const processRequest = async function(event, context) {
 					/* Go through the indexed array of task responses and insert
 					them by key into the final response object. */
 					for (const item of appCompletedTasks) {
-						tools.DebugAndLog.debug("Response Item",item);
+						Utils.DebugAndLog.debug("Response Item",item);
 						dataResponse.addItemByKey(item);
 					};
 
@@ -230,7 +149,7 @@ const processRequest = async function(event, context) {
 					resolve(response);
 
 				} catch (error) {
-					tools.DebugAndLog.error("Main error", { message: error.message, trace: error.stack });
+					Utils.DebugAndLog.error("Main error", { message: error.message, trace: error.stack });
 					response = generateErrorResponse(new Error("Application encountered an error. Main", "500"));
 					timerMain.stop();
 					reject( response );
@@ -252,12 +171,12 @@ const processRequest = async function(event, context) {
 
 			return new Promise(async (resolve, reject) => {
 
-				const timerTaskGetGames = new tools.Timer("timerTaskGetGames", true);
+				const timerTaskGetGames = new Utils.Timer("timerTaskGetGames", true);
 
 				try {
 
 					// we are going to modify the connection by adding a path
-					let connection = obj.Config.getConnection("demo");
+					let connection = Config.getConnection("demo");
 					let conn = connection.toObject();
 					conn.path = "/games/";
 
@@ -282,7 +201,7 @@ const processRequest = async function(event, context) {
 					resolve( new obj.Response(body, "game") );
 					
 				} catch (error) {
-					tools.DebugAndLog.error("taskGetGames CacheController error", { message: error.message, trace: error.stack });
+					Utils.DebugAndLog.error("taskGetGames CacheController error", { message: error.message, trace: error.stack });
 					timerTaskGetGames.stop();
 					reject( new obj.Response({ msg: "error" }, "game") );
 				};
@@ -299,12 +218,12 @@ const processRequest = async function(event, context) {
 
 			return new Promise(async (resolve, reject) => {
 
-				const timerTaskGetPrediction = new tools.Timer("timerTaskGetPrediction", true);
+				const timerTaskGetPrediction = new Utils.Timer("timerTaskGetPrediction", true);
 
 				try {
 
 					// we are going to modify the connection by adding a path
-					let connection = obj.Config.getConnection("demo");
+					let connection = Config.getConnection("demo");
 					let conn = connection.toObject();
 					conn.path = "/8ball/";
 
@@ -329,7 +248,7 @@ const processRequest = async function(event, context) {
 					resolve( new obj.Response(body, "prediction") );
 					
 				} catch (error) {
-					tools.DebugAndLog.error("taskGetPrediction CacheController error", { message: error.message, trace: error.stack });
+					Utils.DebugAndLog.error("taskGetPrediction CacheController error", { message: error.message, trace: error.stack });
 					timerTaskGetPrediction.stop();
 					reject( new obj.Response({ msg: "error" }, "prediction") );
 				};
@@ -346,11 +265,11 @@ const processRequest = async function(event, context) {
 
 			return new Promise(async (resolve, reject) => {
 
-				const timerTaskGetWeather = new tools.Timer("timerTaskGetWeather", true);
+				const timerTaskGetWeather = new Utils.Timer("timerTaskGetWeather", true);
 
 				try {
 
-					let connection = obj.Config.getConnection("weather");
+					let connection = Config.getConnection("weather");
 					let conn = connection.toObject();
 					// conn.path = ""; // we will just use the path set in the connection details
 
@@ -370,14 +289,14 @@ const processRequest = async function(event, context) {
 						body = cacheObj.getBody(true);
 					} else {
 						body = { message: "weather api key not set" };
-						tools.DebugAndLog.warn("weather api key not set - please update in SSM Parameter Store");
+						Utils.DebugAndLog.warn("weather api key not set - please update in SSM Parameter Store");
 					}
 
 					timerTaskGetWeather.stop();
 					resolve( new obj.Response(body, "weather") );
 					
 				} catch (error) {
-					tools.DebugAndLog.error("taskGetWeather CacheController error", { message: error.message, trace: error.stack });
+					Utils.DebugAndLog.error("taskGetWeather CacheController error", { message: error.message, trace: error.stack });
 					timerTaskGetWeather.stop();
 					reject( new obj.Response({ msg: "error" }, "weather") );
 				};
@@ -400,7 +319,7 @@ const processRequest = async function(event, context) {
 	processRequest() code
 	*/
 	
-	tools.DebugAndLog.debug("Received event", event);
+	Utils.DebugAndLog.debug("Received event", event);
 	// this will hold the final response we send back to the calling handler
 	let functionResponse = null;
 
@@ -413,11 +332,16 @@ const processRequest = async function(event, context) {
 		}
 		
 	} catch (error) {
-		tools.DebugAndLog.error("Fatal error", { message: error.message, trace: error.stack });
+		Utils.DebugAndLog.error("Fatal error", { message: error.message, trace: error.stack });
 		functionResponse = generateErrorResponse(new Error("Application encountered an error. Twenty Two", "500"));
 	}
 
 	logResponse(functionResponse);
 	return functionResponse;
 
+};
+
+
+module.exports = {
+	process
 };

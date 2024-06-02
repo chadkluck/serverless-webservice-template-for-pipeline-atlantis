@@ -44,8 +44,8 @@ phases:
     commands:
 
       # Generate Key in SSM for cache-proxy
-      - chmod a+x tools/generate-put-keys.sh
-      - tools/generate-put-keys.sh $PARAM_STORE_HIERARCHY "256" $PREFIX $PROJECT_ID $STAGE_ID #keylength needs to correspond with default (or override) specified for CryptSecureDataAlg in template.yml
+      - chmod a+x deploy-scripts/generate-put-keys.sh
+      - deploy-scripts/generate-put-keys.sh $PARAM_STORE_HIERARCHY "256" $PREFIX $PROJECT_ID $STAGE_ID #keylength needs to correspond with default (or override) specified for CryptSecureDataAlg in template.yml
 
   build:
     commands:
