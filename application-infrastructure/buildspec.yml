@@ -32,21 +32,27 @@ phases:
     runtime-versions:
       nodejs: latest
     commands:
-      # Install dependencies needed for application
-      - cd app
-      - npm install
-      - cd ..
-
       # Upgrade AWS CLI to the latest version
       - pip install --upgrade awscli
-  
+
   pre_build:
     commands:
+      # Install dependencies needed for application
+      - ls
+      - cd application-infrastructure/app
+      - npm ci
+
+      # Perform a fix to move us forward, then check to make sure there were no unresolved high fixes
+      - npm audit fix --force
+      - npm audit --audit-level=high
+      
+      # Go back to application-infrastructure directory
+      - cd ..
 
       # Generate Key in SSM for cache-proxy
-      - chmod a+x build-scripts/generate-put-keys.sh
-      - build-scripts/generate-put-keys.sh $PARAM_STORE_HIERARCHY "256" $PREFIX $PROJECT_ID $STAGE_ID #keylength needs to correspond with default (or override) specified for CryptSecureDataAlg in template.yml
-
+      - chmod a+x build-tools/generate-put-keys.sh
+      - build-tools/generate-put-keys.sh $PARAM_STORE_HIERARCHY "256" $PREFIX $PROJECT_ID $STAGE_ID #keylength needs to correspond with default (or override) specified for CryptSecureDataAlg in template.yml
+      
   build:
     commands:
 
@@ -58,7 +64,9 @@ phases:
 
       # You can add additional tags and parameters to template-configuration.json
 
+      # list files in the artifacts
+      - ls
+
 artifacts:
   files:
-    - template-export.yml
-    - template-configuration.json
+    - 'application-infrastructure/**/*'
