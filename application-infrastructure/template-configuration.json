@@ -1,17 +1,24 @@
 {
   "Parameters": {
-    "UserAgent": "Web Service",
-    "ApiPathBase": "$PROJECT_ID$-$STAGE_ID$"
+    "UserAgent": "Web Service - $STAGE_ID$",
+    "ApiPathBase": "$PROJECT_ID$-$STAGE_ID$",
+    "FunctionMaxMemoryInMB": "1024",
+    "CacheDataTimeZoneForInterval": "America/Chicago",
+    "CacheDataAWSXRayOn": "true"
   },
-  "Tags":
-  {
-    "Name": "Hello World Web Service $PREFIX$-$PROJECT_ID$",
-    "Department": "Web Services",
+  "Tags": {
+    "Name": "Web Service API $PREFIX$-$PROJECT_ID$",
+    "CostCenter": "1234567",
+    "Creator": "me@example.com",
+    "Owner": "me@example.com",
+    "Department": "Web Service Development",
+    "Function": "web-service",
+
     "Provisioner": "CloudFormation",
     "Atlantis": "application-infrastructure",
     "atlantis:Prefix": "$PREFIX$",
-    "atlantis:Project": "$PREFIX$-$PROJECT_ID$",
-    "atlantis:ProjectDeploymentID": "$PREFIX$-$PROJECT_ID$-$STAGE_ID$",
+    "atlantis:Application": "$PREFIX$-$PROJECT_ID$",
+    "atlantis:ApplicationDeploymentId": "$PREFIX$-$PROJECT_ID$-$STAGE_ID$",
     "CodeCommitRepository": "$REPOSITORY$",
     "CodeCommitBranch": "$REPOSITORY$:$REPOSITORY_BRANCH$",
     "CodeCommitRepositoryArn": "arn:aws:codecommit:$AWS_REGION$:$AWS_ACCOUNT$:$REPOSITORY$",
