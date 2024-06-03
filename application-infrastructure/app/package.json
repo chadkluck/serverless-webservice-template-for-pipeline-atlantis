@@ -12,11 +12,11 @@
 	"engines": {
 		"node": ">=18.0.0"
 	},
-	"directories": {
-		"test": "test"
-	},
 	"imports": {
 		"#root/*.js": "./*.js"
+	},
+	"directories": {
+		"test": "test"
 	},
 	"scripts": {
 		"test": "mocha"

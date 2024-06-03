@@ -32,13 +32,23 @@ phases:
     runtime-versions:
       nodejs: latest
     commands:
+
+      - ls -l -a
+
       # Upgrade AWS CLI to the latest version
       - pip install --upgrade awscli
+
+      - python --version
+
+      # Set npm caching (This 'offline' cache is still tar zipped, but it helps.) - https://blog.mechanicalrock.io/2019/02/03/monorepos-aws-codebuild.html
+      - npm config -g set prefer-offline true
+      - npm config -g set cache /root/.npm
+      - npm config get cache
 
   pre_build:
     commands:
       # Install dependencies needed for application
-      - ls
+      - ls -l -a
       - cd application-infrastructure/app
       - npm ci
 
@@ -69,8 +79,13 @@ phases:
       # You can add additional tags and parameters to template-configuration.json
 
       # list files in the artifacts
-      - ls
+      - ls -l -a
 
 artifacts:
   files:
     - 'application-infrastructure/**/*'
+
+# add cache
+cache:
+  paths:
+    - '/root/.npm/**/*'
