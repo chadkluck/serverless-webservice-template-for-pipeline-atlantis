@@ -1,7 +1,12 @@
 const Utils = require("../utils");
 const Tasks = require("./tasks.js");
 
-const main = async () => {
+/**
+ * 
+ * @param {Utils.Request} REQ 
+ * @returns 
+ */
+const main = async (REQ) => {
 
 	const timerMain = new Utils.Timer("Main", true);
 
@@ -13,9 +18,9 @@ const main = async () => {
 			/* Tasks - We will be calling multiple APIs simultainously. */
 			let appTasks = []; // we'll collect the tasks and their promises here
 
-			appTasks.push(Tasks.getGames());
-			appTasks.push(Tasks.getPrediction());
-			appTasks.push(Tasks.getWeather());
+			appTasks.push(Tasks.getGames(REQ));
+			appTasks.push(Tasks.getPrediction(REQ));
+			appTasks.push(Tasks.getWeather(REQ));
 
 			/* this will return everything promised into an indexed array */
 			let appCompletedTasks = await Promise.all(appTasks);

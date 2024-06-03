@@ -7,9 +7,10 @@ const {Config} = require("../config");
 /**
  * Calls the games external api for a list of games and randomly
  * selects a game.
- * @returns {Response} a randomly selected game
+ * @param {Utils.Request} REQ Request Object
+ * @returns {Utils.Response} a randomly selected game
  */
-const getGames = async () => {
+const getGames = async (REQ) => {
 
 	return new Promise(async (resolve, reject) => {
 
@@ -21,6 +22,7 @@ const getGames = async () => {
 			let connection = Config.getConnection("demo");
 			let conn = connection.toObject();
 			conn.path = "/games/";
+			conn.options.timeout = REQ.calcRemainingTimeInMillis(500);
 
 			let cacheCfg = connection.getCacheProfile("games");
 
@@ -40,12 +42,12 @@ const getGames = async () => {
 			}
 
 			timerTaskGetGames.stop();
-			resolve( new obj.Response(body, "game") );
+			resolve( new Utils.Response(body, "game") );
 			
 		} catch (error) {
 			Utils.DebugAndLog.error("getGames CacheController error", { message: error.message, trace: error.stack });
 			timerTaskGetGames.stop();
-			reject( new obj.Response({ msg: "error" }, "game") );
+			reject( new Utils.Response({ msg: "error" }, "game") );
 		};
 
 	});
@@ -54,9 +56,10 @@ const getGames = async () => {
 
 /**
  * Calls the magic ball api for a prediction
- * @returns {Response} A prediction
+ * @param {Utils.Request} REQ Request Object
+ * @returns {Utils.Response} A prediction
  */
-const getPrediction = async () => {
+const getPrediction = async (REQ) => {
 
 	return new Promise(async (resolve, reject) => {
 
@@ -68,6 +71,7 @@ const getPrediction = async () => {
 			let connection = Config.getConnection("demo");
 			let conn = connection.toObject();
 			conn.path = "/8ball/";
+			conn.options.timeout = REQ.calcRemainingTimeInMillis(500);
 
 			let cacheCfg = connection.getCacheProfile("prediction");
 
@@ -87,12 +91,12 @@ const getPrediction = async () => {
 			}
 
 			timerTaskGetPrediction.stop();
-			resolve( new obj.Response(body, "prediction") );
+			resolve( new Utils.Response(body, "prediction") );
 			
 		} catch (error) {
 			Utils.DebugAndLog.error("taskGetPrediction CacheController error", { message: error.message, trace: error.stack });
 			timerTaskGetPrediction.stop();
-			reject( new obj.Response({ msg: "error" }, "prediction") );
+			reject( new Utils.Response({ msg: "error" }, "prediction") );
 		};
 
 	});
@@ -101,9 +105,10 @@ const getPrediction = async () => {
 
 /**
  * Connects to an external weather api and retrieves weather information
- * @returns {Response} weather information
+ * @param {Utils.Request} REQ Request Object
+ * @returns {Utils.Response} weather information
  */
-const getWeather = async () => {
+const getWeather = async (REQ) => {
 
 	return new Promise(async (resolve, reject) => {
 
@@ -114,6 +119,7 @@ const getWeather = async () => {
 			let connection = Config.getConnection("weather");
 			let conn = connection.toObject();
 			// conn.path = ""; // we will just use the path set in the connection details
+			conn.options.timeout = REQ.calcRemainingTimeInMillis(500);
 
 			let body = {};
 
@@ -135,12 +141,12 @@ const getWeather = async () => {
 			}
 
 			timerTaskGetWeather.stop();
-			resolve( new obj.Response(body, "weather") );
+			resolve( new Utils.Response(body, "weather") );
 			
 		} catch (error) {
 			Utils.DebugAndLog.error("taskGetWeather CacheController error", { message: error.message, trace: error.stack });
 			timerTaskGetWeather.stop();
-			reject( new obj.Response({ msg: "error" }, "weather") );
+			reject( new Utils.Response({ msg: "error" }, "weather") );
 		};
 
 	});

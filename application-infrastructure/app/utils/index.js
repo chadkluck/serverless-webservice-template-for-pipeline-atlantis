@@ -21,20 +21,88 @@ class ApplicationError extends Error {
 	}
 };
 
+
+/**
+ * Generate an error response (execution errors)
+ * This is generated if unrecoverable errors are thrown during execution.
+ * Possible errors include inability to access DynamoDB, improper requests,
+ * or any other error that is caught, but can't result in proper execution.
+ * @param {Error} e 
+ * @param {String} statusCode 
+ * @returns {object} A final response that is an error
+ */
+const generateErrorResponse = function (e, statusCode = "400") {
+
+	// put the error message in the body, format it to a specification
+	var body = { errors: [{ code: statusCode, type: "Error", message: e.message }]};
+
+	var contentType = "application/json";
+	body = JSON.stringify(body);
+
+	var headers = { 
+		"content-type": contentType,
+		"access-control-allow-origin": "*",
+		"expires": (new Date(Date.now() + (process.env.CacheData_ErrorExpirationInSeconds * 1000))).toUTCString(),
+		"cache-control": "public, max-age="+process.env.CacheData_ErrorExpirationInSeconds
+	}; 
+
+	// send the error message to the console as Utils.Log.critical bypasses any debug silencer
+	logCritical(statusCode + " " + e.message);
+
+	var response = {statusCode: statusCode, headers: headers, body: body };
+
+	return response;
+};
+
 /**
  * Extends tools.RequestInfo
  * Can be used to create a custom Request object
  */
 class Request extends tools.RequestInfo {
 
+	/** context */
+	#context = null;
+
 	/**
 	 * Initializes the request data based on the event. Also sets the 
 	 * validity of the request so it may be checked by .isValid()
 	 * @param {object} event object from Lambda
 	 */
-	constructor(event) {
+	constructor(event, context = null) {
 		super(event);
 		this.#setIsValid();
+		this.#setContext(context);
+	};
+
+	#setContext(context) {
+		this.#context = context;
+	};
+
+	#getContext() {
+		if (this.#context === null) {
+			tools.DebugAndLog.warn("Context for request is null but was requested. Set context along with event when constructing Request object");
+		}
+		return this.#context;
+	};
+
+	/**
+	 * 
+	 * @returns {number} The remaining time before Lambda times out. 1000 if context is not set in Request object.
+	 */
+	getRemainingTimeInMillis() {
+		return this.#getContext().getRemainingTimeInMillis() || 1000;
+	};
+
+	/**
+	 * Get the number of milliseconds remaining and deduct the headroom given.
+	 * Useful when you want to set a timeout on a function (such as an http request)
+	 * that may take longer than our function has time for.
+	 * @param {number} headroomInMillis number in milliseconds to deduct from Remaining Time
+	 * @returns {number} greater than or equal to 0
+	 */
+	calcRemainingTimeInMillis(headroomInMillis = 0) {
+		let rt = this.getRemainingTimeInMillis() - headroomInMillis;
+		return (rt > 0 ? rt : 0);
 	};
 
 	/**
@@ -207,5 +275,6 @@ module.exports = Object.assign({}, tools, {
 	Request,
 	Response,
 	Tests,
-	Log
+	Log,
+	generateErrorResponse
 });
