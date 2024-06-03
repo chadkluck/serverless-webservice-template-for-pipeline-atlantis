@@ -1,0 +1,29 @@
+{
+  "Parameters": {
+    "UserAgent": "Web Service - $STAGE_ID$",
+    "ApiPathBase": "$PROJECT_ID$-$STAGE_ID$",
+    "FunctionMaxMemoryInMB": "1024",
+    "CacheDataTimeZoneForInterval": "America/Chicago",
+    "CacheDataAWSXRayOn": "true"
+  },
+  "Tags": {
+    "Name": "Web Service API $PREFIX$-$PROJECT_ID$",
+    "CostCenter": "1234567",
+    "Creator": "me@example.com",
+    "Owner": "me@example.com",
+    "Department": "Web Service Development",
+    "Function": "web-service",
+
+    "Provisioner": "CloudFormation",
+    "Atlantis": "application-infrastructure",
+    "atlantis:Prefix": "$PREFIX$",
+    "atlantis:Application": "$PREFIX$-$PROJECT_ID$",
+    "atlantis:ApplicationDeploymentId": "$PREFIX$-$PROJECT_ID$-$STAGE_ID$",
+    "CodeCommitRepository": "$REPOSITORY$",
+    "CodeCommitBranch": "$REPOSITORY$:$REPOSITORY_BRANCH$",
+    "CodeCommitRepositoryArn": "arn:aws:codecommit:$AWS_REGION$:$AWS_ACCOUNT$:$REPOSITORY$",
+    "Environment": "$DEPLOY_ENVIRONMENT$",
+    "Stage": "$STAGE_ID$",
+    "AlarmNotificationEmail": "$ALARM_NOTIFICATION_EMAIL$"
+  }
+}
