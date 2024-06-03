@@ -405,7 +405,7 @@ Dashboard:
                     "x": 12,
                     "type": "log",
                     "properties": {
-                        "query": "SOURCE '/aws/lambda/${AppFunction}' | fields @timestamp as ts, @message\n| limit 500\n| PARSE @message \"[*] * | * | * | * | * | * | * | * | *\" as loggingType, statusCode, bodySize, execTime, dataRequest, clientIP, userAgent, origin, referer, keyID\n| FILTER (loggingType = \"RESPONSE\")\n| stats count(*) as requests by keyID\n| sort requests desc\n",
+                        "query": "SOURCE '/aws/lambda/${AppFunction}' | fields @timestamp as ts, @message\n| limit 500\n| PARSE @message \"[*] * | * | * | * | * | * | * | * | * | *\" as loggingType, statusCode, bodySize, execTime, clientIP, userAgent, origin, referer, route, params, key\n| FILTER (loggingType = \"RESPONSE\")\n| stats count(*) as requests by key\n| sort requests desc\n",
                         "region": "${AWS::Region}",
                         "stacked": false,
                         "title": "API Keys",

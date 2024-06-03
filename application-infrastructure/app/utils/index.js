@@ -128,7 +128,7 @@ class Log {
 	 */
 	static async critical ( text, obj, request) {
 		
-	   /* These are pushed onto the array in the same order that the CloudWatch
+		/* These are pushed onto the array in the same order that the CloudWatch
 		query is expecting to parse out. 
 		-- NOTE: If you add any here, be sure to update the Dashboard template --
 		-- that parses response logs in template.yml !!                        --
@@ -157,29 +157,46 @@ class Log {
 	 * Log the request to CloudWatch
 	 * 
 	 * @param {object} response 
-	 * @param {number} elapsed
 	 * @param {tools.RequestInfo|Request} request
 	 */
-	static async response(response, elapsed, request) {
+	static async response(response, request) {
 
 		/* These are pushed onto the array in the same order that the CloudWatch
 		query is expecting to parse out. 
 		-- NOTE: If you add any here, be sure to update the Dashboard template --
 		-- that parses response logs in template.yml !!                        --
+		-- loggingType, statusCode, bodySize, execTime, clientIP, userAgent, origin, referer, route, params, key
 		*/
+
+		const loggingType = "RESPONSE";
+		const statusCode = response.statusCode;
+		const bytes = (response.body !== null) ? Buffer.byteLength(response.body, 'utf8') : 0; // calculate byte size of response.body
+		const execms = ('x-exec-ms' in response.headers) ? response.headers['x-exec-ms'] : "-";
+		const clientIP = request.getClientIP();
+		const userAgent = request.getClientUserAgent();
+		const origin = request.getClientOrigin();
+		const referer = request.getClientReferer();
+		const route = request.getRoute();
+		const params = "-";
+		const key = "-";
+
 		let logFields = [];
-		logFields.push(response.statusCode);
-		logFields.push(elapsed);
-		logFields.push(request.getClientIP());
-		logFields.push( (( request.getClientUserAgent() !== "" ) ? request.getClientUserAgent() : "-").replace("|", "") ); // doubtful, but userAgent could have | which will mess with log fields
-		logFields.push( (( request.getClientOrigin() !== "" ) ? request.getClientOrigin() : "-") );
-		logFields.push( (( request.getClientReferer() !== "" ) ? request.getClientReferer() : "-") );
+		logFields.push(statusCode);
+		logFields.push(bytes);
+		logFields.push(execms);
+		logFields.push(clientIP);
+		logFields.push( (( userAgent !== "" && userAgent !== null) ? userAgent : "-").replace("|", "") ); // doubtful, but userAgent could have | which will mess with log fields
+		logFields.push( (( origin !== "" && origin !== null) ? origin : "-") );
+		logFields.push( (( referer !== ""  && referer !== null) ? referer : "-") );
+		logFields.push(route);
+		logFields.push(params);
+		logFields.push(key);
 
 		/* Join array together into single text string delimited by ' | ' */
 		let msg = logFields.join(" | ");
 
 		/* send it to CloudWatch via DebugAndLog.log() */
-		tools.DebugAndLog.log(msg, "RESPONSE");
+		tools.DebugAndLog.log(msg, loggingType);
 
 	};
 }
