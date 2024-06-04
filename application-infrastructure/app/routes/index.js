@@ -29,7 +29,7 @@ const process = async function(event, context) {
 		}
 		
 	} catch (error) {
-		Utils.DebugAndLog.error("Fatal error", { message: error.message, trace: error.stack });
+		Utils.tools.DebugAndLog.error(`Fatal error ${error.message}`, JSON.stringify(error.stack ));
 		functionResponse = Utils.generateErrorResponse(new Error("Application encountered an error. Twenty Two", "500"));
 	}
 
