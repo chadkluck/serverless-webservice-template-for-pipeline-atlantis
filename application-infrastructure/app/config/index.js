@@ -94,14 +94,14 @@ class Config extends tools._ConfigSuperClass {
 				
 			try {
 
-				let params = await this._initParameters(
-					[
-						{
-							"group": "app", // so we can do params.app.weatherapikey later
-							"path": process.env.paramStore // Lambda environment variable
-						}
-					]
-				);
+				// let params = await this._initParameters(
+				// 	[
+				// 		{
+				// 			"group": "app", // so we can do params.app.weatherapikey later
+				// 			"path": process.env.paramStore // Lambda environment variable
+				// 		}
+				// 	]
+				// );
 
 
 				/* You can divide up your custom settings file into sections and separate them out.
@@ -163,7 +163,7 @@ class Config extends tools._ConfigSuperClass {
 					parameters: {
 						q: this.#settings.weather.q, // note how we are bringing this in from settings.json
 						units: this.#settings.weather.units, // note how we are bringing this in from settings.json
-						appid: ("Weather_APIKey" in params.app ? params.app.Weather_APIKey : "BLANK") // this is set from the SSM Parameters brought in
+						appid: new tools.CachedSSMParameter(process.env.paramStore+'Weather_APIKey', {refreshAfter: 300}),
 					},
 					cache: [
 						{
@@ -188,7 +188,8 @@ class Config extends tools._ConfigSuperClass {
 					dynamoDbTable: process.env.CacheData_DynamoDbTable,
 					s3Bucket: process.env.CacheData_S3Bucket,
 					secureDataAlgorithm: process.env.CacheData_CryptSecureDataAlgorithm,
-					secureDataKey: Buffer.from(params.app.CacheData_SecureDataKey, cache.Cache.CRYPT_ENCODING),
+					// secureDataKey: Buffer.from(params.app.CacheData_SecureDataKey, cache.Cache.CRYPT_ENCODING),
+					secureDataKey: new tools.CachedSSMParameter(process.env.paramStore+'CacheData_SecureDataKey', {refreshAfter: 300}),
 					idHashAlgorithm: process.env.CacheData_CryptIdHashAlgorithm,
 					DynamoDbMaxCacheSize_kb: parseInt(process.env.CacheData_DynamoDb_maxCacheSize_kb, 10),
 					purgeExpiredCacheEntriesAfterXHours: parseInt(process.env.CacheData_PurgeExpiredCacheEntriesAfterXHours, 10),
@@ -209,6 +210,14 @@ class Config extends tools._ConfigSuperClass {
 			
 		});
 
+
+	};
+
+	static async prime() {
+		return await Promise.all([
+			cache.CacheableDataAccess.prime(),
+			tools.CachedParameterSecrets.prime()
+		]);
 	};
 };
 

@@ -27,7 +27,7 @@ const { Config } = require("./config/index.js");
 const Routes = require("./routes/index.js");
 
 /* log a cold start and keep track of init time */
-const coldStartInitTimer = new Util.Timer("coldStartTimer", true);
+const coldStartInitTimer = new Utils.Timer("coldStartTimer", true);
 
 /* initialize the Config */
 Config.init(); // we need to await completion in the async call function - at least until node 14
@@ -47,6 +47,7 @@ exports.handler = async (event, context, callback) => {
 
 		/* wait for CONFIG to be settled as we need it before continuing. */
 		await Config.promise();
+		await Config.prime();
 
 		/* If the cold start init timer is running, stop it and log. This won't run again until next cold start */
 		if (coldStartInitTimer.isRunning()) { Utils.DebugAndLog.log(coldStartInitTimer.stop(),"COLDSTART"); }

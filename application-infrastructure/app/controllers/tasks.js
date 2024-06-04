@@ -22,6 +22,7 @@ const getGames = async (REQ) => {
 			let connection = Config.getConnection("demo");
 			let conn = connection.toObject();
 			conn.path = "/games/";
+			conn.options = conn.options || {};
 			conn.options.timeout = REQ.calcRemainingTimeInMillis(500);
 
 			let cacheCfg = connection.getCacheProfile("games");
@@ -71,6 +72,7 @@ const getPrediction = async (REQ) => {
 			let connection = Config.getConnection("demo");
 			let conn = connection.toObject();
 			conn.path = "/8ball/";
+			conn.options = conn.options || {};
 			conn.options.timeout = REQ.calcRemainingTimeInMillis(500);
 
 			let cacheCfg = connection.getCacheProfile("prediction");
@@ -119,8 +121,9 @@ const getWeather = async (REQ) => {
 			let connection = Config.getConnection("weather");
 			let conn = connection.toObject();
 			// conn.path = ""; // we will just use the path set in the connection details
+			conn.options = conn.options || {};
 			conn.options.timeout = REQ.calcRemainingTimeInMillis(500);
-
+			
 			let body = {};
 
 			if (conn.parameters.appid !== "BLANK") {

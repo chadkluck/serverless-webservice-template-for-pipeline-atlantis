@@ -57,9 +57,9 @@ Metadata:
           default: "Application Parameters"
         Parameters:
           - ApiPathBase
+          - UserAgent
           - LogRetentionInDaysForPROD
           - LogRetentionInDaysForDEVTEST
-          - UserAgent
       -
         Label:
           default: "Cache-Data Parameters"
@@ -195,6 +195,10 @@ Parameters:
     MaxLength: 128
     MinLength: 1
     ConstraintDescription: "1-128 lowercase alpha numeric, hyphens, and underscores. Must begin and end with an alphanumeric character."
+  UserAgent:
+    Type: String
+    Description: "User Agent string to use when accessing remote services"
+    Default: "Web Service"
   LogRetentionInDaysForPROD:
     Type: Number
     Description: "How long should CloudWatch logs be kept in a PRODUCTION environment?"
@@ -205,6 +209,7 @@ Parameters:
     Description: "How long should CloudWatch logs be kept in a DEV or TEST environment?"
     Default: 7
     AllowedValues: [1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653]
+  
 
   # ---------------------------------------------------------------------------
   # Cache-Data Parameters
@@ -271,11 +276,13 @@ Conditions:
   IsNotProduction: !Not [!Equals [!Ref DeployEnvironment, "PROD"]]
   IsTest: !Equals [!Ref DeployEnvironment, "TEST"]
   IsDevelopment: !Equals [!Ref DeployEnvironment, "DEV"]
+  IsNotDevelopment: !Not [!Equals [!Ref DeployEnvironment, "DEV"]]
   CreateProdResources: !Equals [!Ref DeployEnvironment, "PROD"]
   CreateTestResources: !Equals [!Ref DeployEnvironment, "TEST"]
   CreateDevResources: !Equals [!Ref DeployEnvironment, "DEV"]
   UseS3BucketNameOrgPrefix: !Not [!Equals [!Ref S3BucketNameOrgPrefix, ""]]
   CreateAlarms: !Equals [!Ref DeployEnvironment, "PROD"] # !Equals ["ALWAYS", "ALWAYS"] # Option if you want to ALWAYS create an alarm or only in PROD. Alarms cost money so you may only want them in Prod (or temporarily in test)
+  HasPermissionsBoundaryARN: !Not [!Equals [!Ref PermissionsBoundaryARN, ""]]
 
 # =============================================================================
 # GLOBALS
@@ -350,8 +357,8 @@ Resources:
       Tracing: Active # X-Ray
       # Required adding policy to deploy pipeline CF template for lambda layers
       Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:52" # Check for latest version: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Lambda-Insights-extension-versionsx86-64.html
-        - !Sub "arn:aws:lambda:${AWS::Region}:177933569100:layer:AWS-Parameters-and-Secrets-Lambda-Extension:11" # https://docs.aws.amazon.com/systems-manager/latest/userguide/ps-integration-lambda-extensions.html#ps-integration-lambda-extensions-add
+        - !Sub "arn:aws:lambda:us-east-2:580247275435:layer:LambdaInsightsExtension:52" # Check for latest version: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Lambda-Insights-extension-versionsx86-64.html
+        - !Sub "arn:aws:lambda:us-east-2:590474943231:layer:AWS-Parameters-and-Secrets-Lambda-Extension:11" # https://docs.aws.amazon.com/systems-manager/latest/userguide/ps-integration-lambda-extensions.html#ps-integration-lambda-extensions-add
 
       Environment:
         Variables:
@@ -579,10 +586,7 @@ Resources:
 
 
   # -- Cache-Data S3 Bucket --
-<<<<<<< HEAD:template.yml
-=======
 
->>>>>>> c8565f7c7cdea87383af385c86b557b5bb80b6c1:application-infrastructure/template.yml
   CacheDataS3Bucket:
     Type: AWS::S3::Bucket
     Description: S3 Bucket to store Cache-Data too big for DynamoDb. Cache-Data stores objects in /cache directory. The application may store additional data outside of the cache directory.
