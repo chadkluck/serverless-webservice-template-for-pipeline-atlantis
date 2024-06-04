@@ -23,17 +23,17 @@ function hook_stream (_stream, fn) {
 	};
 };
 
-console.log(`Testing Against Node version ${Utils.nodeVerMajor} (${Utils.nodeVer})`);
-if (Utils.nodeVerMajor < 16) {
+console.log(`Testing Against Node version ${Utils.tools.nodeVerMajor} (${Utils.tools.nodeVer})`);
+if (Utils.tools.nodeVerMajor < 16) {
 	console.log("Node version is too low, skipping tests");
 	process.exit(0);
 }
-if (Utils.nodeVerMajor < 18) {
+if (Utils.tools.nodeVerMajor < 18) {
 	console.warn("Lambda running Node v16 or less will use AWS-SDK v2. Upgrade your Lambda function to use Node v18 or higher so that AWS-SDK v3 may be used. @chadkluck/cache-data will still work under Node 16/AWS-SDK v2, but you will receive warnings about upgrading AWS-SDK to v3");
 }
 
-console.log(`Node ${Utils.AWS.NODE_VER} MAJOR ${Utils.AWS.NODE_VER_MAJOR} MINOR ${Utils.AWS.NODE_VER_MINOR} PATCH ${Utils.AWS.NODE_VER_PATCH} MAJOR MINOR ${Utils.AWS.NODE_VER_MAJOR_MINOR} SDK ${Utils.AWS.SDK_VER} REGION ${Utils.AWS.REGION} V2 ${Utils.AWS.SDK_V2} V3 ${Utils.AWS.SDK_V3}`, Utils.AWS.nodeVersionArray);
-console.log(`Utils.AWS.INFO`, Utils.AWS.INFO);
+console.log(`Node ${Utils.tools.AWS.NODE_VER} MAJOR ${Utils.tools.AWS.NODE_VER_MAJOR} MINOR ${Utils.tools.AWS.NODE_VER_MINOR} PATCH ${Utils.tools.AWS.NODE_VER_PATCH} MAJOR MINOR ${Utils.tools.AWS.NODE_VER_MAJOR_MINOR} SDK ${Utils.tools.AWS.SDK_VER} REGION ${Utils.tools.AWS.REGION} V2 ${Utils.tools.AWS.SDK_V2} V3 ${Utils.tools.AWS.SDK_V3}`, Utils.tools.AWS.nodeVersionArray);
+console.log(`Utils.tools.AWS.INFO`, Utils.tools.AWS.INFO);
 
 /* ****************************************************************************
  *	Connection, Connections and ConnectionAuthentication Classes
@@ -42,7 +42,7 @@ console.log(`Utils.AWS.INFO`, Utils.AWS.INFO);
 describe("Test Connection, Connections, and ConnectionAuthentication Classes", () => {
 	describe("Test Connection Class", () => {
 		it('toString with defaults', () => {
-			let conn = new Utils.Connection({
+			let conn = new Utils.tools.Connection({
 				host: 'api.chadkluck.net',
 				path: '/games/'
 			})

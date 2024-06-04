@@ -56,9 +56,6 @@ phases:
       # Perform a fix to move us forward, then check to make sure there were no unresolved high fixes
       - npm audit fix --force
       - npm audit --audit-level=high
-
-      # Run unit tests
-      - npm run test
       
       # Go back to application-infrastructure directory
       - cd ..

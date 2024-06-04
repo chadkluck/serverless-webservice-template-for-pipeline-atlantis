@@ -14,7 +14,7 @@ const getGames = async (REQ) => {
 
 	return new Promise(async (resolve, reject) => {
 
-		const timerTaskGetGames = new Utils.Timer("timerTaskGetGames", true);
+		const timerTaskGetGames = new Utils.tools.Timer("timerTaskGetGames", true);
 
 		try {
 
@@ -46,7 +46,7 @@ const getGames = async (REQ) => {
 			resolve( new Utils.Response(body, "game") );
 			
 		} catch (error) {
-			Utils.DebugAndLog.error("getGames CacheController error", { message: error.message, trace: error.stack });
+			Utils.tools.DebugAndLog.error("getGames CacheController error", { message: error.message, trace: error.stack });
 			timerTaskGetGames.stop();
 			reject( new Utils.Response({ msg: "error" }, "game") );
 		};
@@ -64,7 +64,7 @@ const getPrediction = async (REQ) => {
 
 	return new Promise(async (resolve, reject) => {
 
-		const timerTaskGetPrediction = new Utils.Timer("timerTaskGetPrediction", true);
+		const timerTaskGetPrediction = new Utils.tools.Timer("timerTaskGetPrediction", true);
 
 		try {
 
@@ -96,7 +96,7 @@ const getPrediction = async (REQ) => {
 			resolve( new Utils.Response(body, "prediction") );
 			
 		} catch (error) {
-			Utils.DebugAndLog.error("taskGetPrediction CacheController error", { message: error.message, trace: error.stack });
+			Utils.tools.DebugAndLog.error("taskGetPrediction CacheController error", { message: error.message, trace: error.stack });
 			timerTaskGetPrediction.stop();
 			reject( new Utils.Response({ msg: "error" }, "prediction") );
 		};
@@ -114,7 +114,7 @@ const getWeather = async (REQ) => {
 
 	return new Promise(async (resolve, reject) => {
 
-		const timerTaskGetWeather = new Utils.Timer("timerTaskGetWeather", true);
+		const timerTaskGetWeather = new Utils.tools.Timer("timerTaskGetWeather", true);
 
 		try {
 
@@ -140,14 +140,14 @@ const getWeather = async (REQ) => {
 				body = cacheObj.getBody(true);
 			} else {
 				body = { message: "weather api key not set" };
-				Utils.DebugAndLog.warn("weather api key not set - please update in SSM Parameter Store");
+				Utils.tools.DebugAndLog.warn("weather api key not set - please update in SSM Parameter Store");
 			}
 
 			timerTaskGetWeather.stop();
 			resolve( new Utils.Response(body, "weather") );
 			
 		} catch (error) {
-			Utils.DebugAndLog.error("taskGetWeather CacheController error", { message: error.message, trace: error.stack });
+			Utils.tools.DebugAndLog.error("taskGetWeather CacheController error", { message: error.message, trace: error.stack });
 			timerTaskGetWeather.stop();
 			reject( new Utils.Response({ msg: "error" }, "weather") );
 		};

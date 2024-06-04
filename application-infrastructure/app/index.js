@@ -27,10 +27,10 @@ const { Config } = require("./config/index.js");
 const Routes = require("./routes/index.js");
 
 /* log a cold start and keep track of init time */
-const coldStartInitTimer = new Utils.Timer("coldStartTimer", true);
+const coldStartInitTimer = new Utils.tools.Timer("coldStartTimer", true);
 
 /* initialize the Config */
-Config.init(); // we need to await completion in the async call function - at least until node 14
+Config.init(); // we need to await completion in the handler
 
 /**
  * Lambda function handler
@@ -50,7 +50,7 @@ exports.handler = async (event, context, callback) => {
 		await Config.prime();
 
 		/* If the cold start init timer is running, stop it and log. This won't run again until next cold start */
-		if (coldStartInitTimer.isRunning()) { Utils.DebugAndLog.log(coldStartInitTimer.stop(),"COLDSTART"); }
+		if (coldStartInitTimer.isRunning()) { Utils.tools.DebugAndLog.log(coldStartInitTimer.stop(),"COLDSTART"); }
 
 		/* Process the request and wait for result */
 		response = await Routes.process(event, context);
@@ -58,7 +58,7 @@ exports.handler = async (event, context, callback) => {
 	} catch (error) {
 
 		/* Log the error */
-		Utils.DebugAndLog.error(`500 | Unhandled Execution Error in Handler ${error.message}`, JSON.stringify(error.stack));
+		Utils.tools.DebugAndLog.error(`500 | Unhandled Execution Error in Handler ${error.message}`, JSON.stringify(error.stack));
 
 		response = {
 			statusCode: 500,

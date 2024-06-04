@@ -1,12 +1,13 @@
 
-const { tools, cache } = require('@chadkluck/cache-data');
+const { cache } = require('@chadkluck/cache-data');
+const Utils = require('../utils');
 const customSettings = require("./settings.json");
 
 /* increase the log level - comment out when not needed  */
-tools.DebugAndLog.setLogLevel(5, "2025-10-30T04:59:59Z"); // we can increase the debug level with an expiration
+Utils.tools.DebugAndLog.setLogLevel(5, "2025-10-30T04:59:59Z"); // we can increase the debug level with an expiration
 
 /**
- * Extends tools._ConfigSuperClass
+ * Extends Utils.tools._ConfigSuperClass
  * Used to create a custom Config interface
  * Usage: should be placed near the top of the script file outside 
  * of the event handler. It should be global and must be initialized.
@@ -14,7 +15,7 @@ tools.DebugAndLog.setLogLevel(5, "2025-10-30T04:59:59Z"); // we can increase the
  * const obj = require("./classes.js");
  * obj.Config.init();
  */
-class Config extends tools._ConfigSuperClass {
+class Config extends Utils.tools._ConfigSuperClass {
 	
 	/**
 	 * 
@@ -37,7 +38,7 @@ class Config extends tools._ConfigSuperClass {
 		} else if ( key in this.#settings ) {
 			obj = this.#settings[key];
 		}
-		tools.DebugAndLog.debug("Settings for key: "+key, obj);
+		Utils.tools.DebugAndLog.debug("Settings for key: "+key, obj);
 		return (obj !== null) ? JSON.parse(JSON.stringify(obj)) : null;
 	};
 
@@ -88,9 +89,9 @@ class Config extends tools._ConfigSuperClass {
 	 */
 	static async init() {
 		
-		tools._ConfigSuperClass._promise = new Promise(async (resolve, reject) => {
+		Utils.tools._ConfigSuperClass._promise = new Promise(async (resolve, reject) => {
 
-			const timerConfigInit = new tools.Timer("timerConfigInit", true);
+			const timerConfigInit = new Utils.tools.Timer("timerConfigInit", true);
 				
 			try {
 
@@ -114,7 +115,7 @@ class Config extends tools._ConfigSuperClass {
 				if ( "referers" in customSettings ) { this.#referers = customSettings.referers; }
 
 				// after we have the params, we can set the connections
-				let connections = new tools.Connections();
+				let connections = new Utils.tools.Connections();
 
 				/* NOTE: instead of hard coding connections, you could import 
 				from a connections file (or include in the settings.json file)
@@ -163,7 +164,7 @@ class Config extends tools._ConfigSuperClass {
 					parameters: {
 						q: this.#settings.weather.q, // note how we are bringing this in from settings.json
 						units: this.#settings.weather.units, // note how we are bringing this in from settings.json
-						appid: new tools.CachedSSMParameter(process.env.paramStore+'Weather_APIKey', {refreshAfter: 300}),
+						appid: new Utils.tools.CachedSSMParameter(process.env.paramStore+'Weather_APIKey', {refreshAfter: 300}),
 					},
 					cache: [
 						{
@@ -179,9 +180,7 @@ class Config extends tools._ConfigSuperClass {
 					]        
 				} );
 
-				tools._ConfigSuperClass._connections = connections;
-
-				tools.DebugAndLog.debug("Config Connections: ", this.connections());
+				Utils.tools._ConfigSuperClass._connections = connections;
 
 				// Cache settings
 				cache.Cache.init({
@@ -189,7 +188,7 @@ class Config extends tools._ConfigSuperClass {
 					s3Bucket: process.env.CacheData_S3Bucket,
 					secureDataAlgorithm: process.env.CacheData_CryptSecureDataAlgorithm,
 					// secureDataKey: Buffer.from(params.app.CacheData_SecureDataKey, cache.Cache.CRYPT_ENCODING),
-					secureDataKey: new tools.CachedSSMParameter(process.env.paramStore+'CacheData_SecureDataKey', {refreshAfter: 300}),
+					secureDataKey: new Utils.tools.CachedSSMParameter(process.env.paramStore+'CacheData_SecureDataKey', {refreshAfter: 300}),
 					idHashAlgorithm: process.env.CacheData_CryptIdHashAlgorithm,
 					DynamoDbMaxCacheSize_kb: parseInt(process.env.CacheData_DynamoDb_maxCacheSize_kb, 10),
 					purgeExpiredCacheEntriesAfterXHours: parseInt(process.env.CacheData_PurgeExpiredCacheEntriesAfterXHours, 10),
@@ -197,14 +196,14 @@ class Config extends tools._ConfigSuperClass {
 					timeZoneForInterval: process.env.CacheData_TimeZoneForInterval, // if caching on interval, we need a timezone to account for calculating hours, days, and weeks. List: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 				});
 
-				tools.DebugAndLog.debug("Cache: ", cache.Cache.info());
+				Utils.tools.DebugAndLog.debug("Cache: ", cache.Cache.info());
 
 				// We're done
 				timerConfigInit.stop();
 				
 				resolve(true);
 			} catch (error) {
-				tools.DebugAndLog.error("Could not initialize Config", { message: error.message, trace: error.stack });
+				Utils.tools.DebugAndLog.error(`Could not initialize Config ${error.message}`, JSON.stringify(error.stack));
 				reject(false);
 			};
 			
@@ -214,9 +213,9 @@ class Config extends tools._ConfigSuperClass {
 	};
 
 	static async prime() {
-		return await Promise.all([
+		return Promise.all([
 			cache.CacheableDataAccess.prime(),
-			tools.CachedParameterSecrets.prime()
+			Utils.tools.CachedParameterSecrets.prime()
 		]);
 	};
 };

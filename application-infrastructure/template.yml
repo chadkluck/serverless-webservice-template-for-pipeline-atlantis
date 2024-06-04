@@ -314,7 +314,7 @@ Resources:
       Name: !Sub '${Prefix}-${ProjectId}-${StageId}-WebApi'
       StageName: !Ref ApiPathBase
       PropagateTags: True
-      TracingEnabled: True
+      TracingEnabled: !If [ IsNotDevelopment, True,  False] # X-Ray
 
       DefinitionBody:
         "Fn::Transform":
@@ -354,7 +354,7 @@ Resources:
       PropagateTags: True
 
       # Lambda Insights and X-Ray
-      Tracing: Active # X-Ray
+      Tracing: !If [ IsNotDevelopment, "Active",  "Disabled"] # X-Ray
       # Required adding policy to deploy pipeline CF template for lambda layers
       Layers:
         - !Sub "arn:aws:lambda:us-east-2:580247275435:layer:LambdaInsightsExtension:52" # Check for latest version: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Lambda-Insights-extension-versionsx86-64.html
@@ -378,7 +378,7 @@ Resources:
           CacheData_PurgeExpiredCacheEntriesAfterXHours: !Ref CacheDataPurgeExpiredCacheEntriesInHours
           CacheData_ErrorExpirationInSeconds: !Ref CacheDataErrorExpirationInSeconds
           CacheData_TimeZoneForInterval: !Ref CacheDataTimeZoneForInterval
-          CacheData_AWSXRayOn: !Ref CacheDataAWSXRayOn
+          CacheData_AWSXRayOn: !If [ IsNotDevelopment, !Ref CacheDataAWSXRayOn,  "false"]
 
       Events:
         GetEvent:
@@ -393,9 +393,7 @@ Resources:
             Path: /
             Method: post
             RestApiId: !Ref WebApi
-            
-      Role: !GetAtt LambdaExecutionRole.Arn
-
+  
   # -- LambdaFunction Execution Role --
 
   LambdaExecutionRole:
@@ -570,7 +568,6 @@ Resources:
 
   CacheDataDynamoDbTable:
     Type: AWS::DynamoDB::Table
-    Description: Table to store Cache-Data. 
     Properties:
       TableName: !Sub '${Prefix}-${ProjectId}-${StageId}-CacheData'
       AttributeDefinitions: 
@@ -589,7 +586,6 @@ Resources:
 
   CacheDataS3Bucket:
     Type: AWS::S3::Bucket
-    Description: S3 Bucket to store Cache-Data too big for DynamoDb. Cache-Data stores objects in /cache directory. The application may store additional data outside of the cache directory.
     Properties:
       BucketName: !Join
         - "-"

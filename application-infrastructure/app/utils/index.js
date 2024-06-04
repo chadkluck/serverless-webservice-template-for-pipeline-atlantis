@@ -46,7 +46,7 @@ const generateErrorResponse = function (e, statusCode = "400") {
 		"cache-control": "public, max-age="+process.env.CacheData_ErrorExpirationInSeconds
 	}; 
 
-	// send the error message to the console as Utils.Log.critical bypasses any debug silencer
+	// send the error message to the console as Utils.tools.Log.critical bypasses any debug silencer
 	logCritical(statusCode + " " + e.message);
 
 	var response = {statusCode: statusCode, headers: headers, body: body };
@@ -270,11 +270,12 @@ class Log {
 }
 
 // we want to include these in our tools namespace so others can use them
-module.exports = Object.assign({}, tools, {
+module.exports = {
+	tools,
 	ApplicationError,
 	Request,
 	Response,
 	Tests,
 	Log,
 	generateErrorResponse
-});
+};
