@@ -181,8 +181,9 @@ Parameters:
     Type: Number
     Description: "If you are handling large responses, you will need to increase the size. Monitor CloudWatch logs"
     Default: 128
-    AllowedValues: [128, 192, 256, 320, 384, 448, 512]
-    ConstraintDescription: "Min 128, Max 512 in increments of 64"
+    MinValue: 128
+    MaxValue: 10000
+    ConstraintDescription: "In MB: Min 128, Max 10240 (10 GB)"
 
   # ---------------------------------------------------------------------------
   # Application Settings
