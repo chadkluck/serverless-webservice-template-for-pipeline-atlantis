@@ -14,7 +14,7 @@ const process = async function(event, context) {
 	 */
 	const REQ = new Utils.Request(event, context);
 	
-	Utils.DebugAndLog.debug("Received event", event);
+	Utils.tools.DebugAndLog.debug("Received event", event);
 	// this will hold the final response we send back to the calling handler
 	let functionResponse = null;
 
@@ -30,7 +30,7 @@ const process = async function(event, context) {
 		
 	} catch (error) {
 		Utils.DebugAndLog.error("Fatal error", { message: error.message, trace: error.stack });
-		functionResponse = generateErrorResponse(new Error("Application encountered an error. Twenty Two", "500"));
+		functionResponse = Utils.generateErrorResponse(new Error("Application encountered an error. Twenty Two", "500"));
 	}
 
 	Utils.Log.response(functionResponse, REQ);
