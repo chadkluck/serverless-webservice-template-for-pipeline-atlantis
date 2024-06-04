@@ -143,6 +143,7 @@ Parameters:
       - "Linear10PercentEvery3Minutes"
       - "Linear10PercentEvery10Minutes"
       - "AllAtOnce" # All at once. Recommended only for TEST and DEV environments.
+
   DeployRole:
     Type: String
     Description: "IAM role to allow AWS CodeDeploy to manage deployment of AWS Lambda functions"
@@ -156,11 +157,13 @@ Parameters:
     Default: "/"
     AllowedPattern: "^\\/([a-zA-Z0-9_.\\-]*[\\/])+$|^\\/$"
     ConstraintDescription: "Must only contain alpha-numeric, dashes, underscores, or slashes. Must be a single slash or begin and end with a slash. (/Finance/, /Finance/ops/, or /)"
+
   AlarmNotificationEmail:
     Type: String
     Description: "Email address to send notifications to when alarms are triggered. Be sure to check the inbox as you will need to confirm the subscription."
     AllowedPattern: "^[\\w\\-\\.]+@([\\w\\-]+\\.)+[\\w\\-]{2,4}$"
     ConstraintDescription: "A valid email address"
+
   PermissionsBoundaryARN:
     Type: String
     Description: "Permissions Boundary is a policy attached to a role to further restrict the permissions of the role. Your organization may or may not require boundaries. If left empty, no permissions boundary will be used."
@@ -177,12 +180,13 @@ Parameters:
     Default: 10
     MinValue: 3
     MaxValue: 30
+
   FunctionMaxMemoryInMB:
     Type: Number
     Description: "If you are handling large responses, you will need to increase the size. Monitor CloudWatch logs"
     Default: 128
     MinValue: 128
-    MaxValue: 10000
+    MaxValue: 10240
     ConstraintDescription: "In MB: Min 128, Max 10240 (10 GB)"
 
   # ---------------------------------------------------------------------------
@@ -196,15 +200,18 @@ Parameters:
     MaxLength: 128
     MinLength: 1
     ConstraintDescription: "1-128 lowercase alpha numeric, hyphens, and underscores. Must begin and end with an alphanumeric character."
+
   UserAgent:
     Type: String
     Description: "User Agent string to use when accessing remote services"
     Default: "Web Service"
+
   LogRetentionInDaysForPROD:
     Type: Number
     Description: "How long should CloudWatch logs be kept in a PRODUCTION environment?"
     Default: 90
     AllowedValues: [1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653]
+
   LogRetentionInDaysForDEVTEST:
     Type: Number
     Description: "How long should CloudWatch logs be kept in a DEV or TEST environment?"
