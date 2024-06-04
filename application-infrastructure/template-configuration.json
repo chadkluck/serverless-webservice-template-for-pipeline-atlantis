@@ -2,7 +2,7 @@
   "Parameters": {
     "UserAgent": "Web Service - $STAGE_ID$",
     "ApiPathBase": "$PROJECT_ID$-$STAGE_ID$",
-    "FunctionMaxMemoryInMB": 1024,
+    "FunctionMaxMemoryInMB": "1024",
     "CacheDataTimeZoneForInterval": "America/Chicago",
     "CacheDataAWSXRayOn": "true"
   },
