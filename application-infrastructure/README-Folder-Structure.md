@@ -131,7 +131,7 @@ Controllers should be written using Object Oriented Programming (Classes).
 
 `models/`
 
-Models with "Data Access Objects" understand the connections that need to be made and any data transformations that need to take place before returning data back to the controller.
+The models directory contain Data Access Objects (DAO) and fetch methods. "Data Access Objects" understand the connections (with authentication) that need to be made and any data transformations that need to take place before returning data back to the controller.
 
 Models should be developed using OOP (Object Oriented Programming) and well thought out so that they can be easily replaced. If a database connection and schema is swapped out for a Restful API endpoint, the downstream controller should not know the difference.
 
