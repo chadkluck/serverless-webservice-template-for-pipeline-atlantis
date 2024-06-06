@@ -46,7 +46,7 @@ const getGames = async (REQ) => {
 			resolve( new Utils.Response(body, "game") );
 			
 		} catch (error) {
-			Utils.tools.DebugAndLog.error("getGames CacheController error", { message: error.message, trace: error.stack });
+			Utils.tools.DebugAndLog.error(`getGames CacheController error: ${error.message}`, error.stack);
 			timerTaskGetGames.stop();
 			reject( new Utils.Response({ msg: "error" }, "game") );
 		};
@@ -96,7 +96,7 @@ const getPrediction = async (REQ) => {
 			resolve( new Utils.Response(body, "prediction") );
 			
 		} catch (error) {
-			Utils.tools.DebugAndLog.error("taskGetPrediction CacheController error", { message: error.message, trace: error.stack });
+			Utils.tools.DebugAndLog.error(`taskGetPrediction CacheController error: ${error.message}`, error.stack);
 			timerTaskGetPrediction.stop();
 			reject( new Utils.Response({ msg: "error" }, "prediction") );
 		};
@@ -147,7 +147,7 @@ const getWeather = async (REQ) => {
 			resolve( new Utils.Response(body, "weather") );
 			
 		} catch (error) {
-			Utils.tools.DebugAndLog.error("taskGetWeather CacheController error", { message: error.message, trace: error.stack });
+			Utils.tools.DebugAndLog.error(`taskGetWeather CacheController error: ${error.message}`, error.stack);
 			timerTaskGetWeather.stop();
 			reject( new Utils.Response({ msg: "error" }, "weather") );
 		};

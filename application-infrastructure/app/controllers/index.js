@@ -53,7 +53,7 @@ const main = async (REQ) => {
 			resolve(response);
 
 		} catch (error) {
-			Utils.tools.DebugAndLog.error("Main error", { message: error.message, trace: error.stack });
+			Utils.tools.DebugAndLog.error(`Main error: ${error.message}`, error.stack);
 			response = generateErrorResponse(new Error("Application encountered an error. Main", "500"));
 			timerMain.stop();
 			reject( response );
