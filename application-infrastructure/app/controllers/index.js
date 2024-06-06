@@ -8,7 +8,7 @@ const Tasks = require("./tasks.js");
  */
 const main = async (REQ) => {
 
-	const timerMain = new Utils.Timer("Main", true);
+	const timerMain = new Utils.tools.Timer("Main", true);
 
 	return new Promise(async (resolve, reject) => {
 
@@ -35,7 +35,7 @@ const main = async (REQ) => {
 			/* Go through the indexed array of task responses and insert
 			them by key into the final response object. */
 			for (const item of appCompletedTasks) {
-				Utils.DebugAndLog.debug("Response Item",item);
+				Utils.tools.DebugAndLog.debug("Response Item",item);
 				dataResponse.addItemByKey(item);
 			};
 
@@ -53,7 +53,7 @@ const main = async (REQ) => {
 			resolve(response);
 
 		} catch (error) {
-			Utils.DebugAndLog.error("Main error", { message: error.message, trace: error.stack });
+			Utils.tools.DebugAndLog.error("Main error", { message: error.message, trace: error.stack });
 			response = generateErrorResponse(new Error("Application encountered an error. Main", "500"));
 			timerMain.stop();
 			reject( response );
