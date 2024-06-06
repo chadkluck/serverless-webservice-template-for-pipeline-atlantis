@@ -67,6 +67,12 @@ This file is used when deploying the application using the SAM CLI such as durin
 
 A sample file (`sample-samconfig.toml`) is provided by default and can be downloaded from this template project's repository. You can modify and store the sample file in your repository with basic information that can be used by other developers. To use it locally, save a copy as `samconfig.toml` (it will be ignored by GIT as long as `samconfig.toml` remains in the `.gitignore` file).
 
+### Public directory
+
+`public/`
+
+If you have static files to host in S3 you can place them in the public directory and then add the S3 sync command (`aws s3 sync`) to the list of commands in buildspec.yml. Note that that the S3 bucket must already exist outside of your application's CloudFormation template.
+
 ## App or Src directory
 
 `app` or `src`
@@ -81,7 +87,7 @@ The following documentation goes over structure for a single Lambda function wri
 
 `index.js`
 
-This file is the entry point to your Lambda function and contains the function initialization (during Cold Starts) and any handlers.
+This is the entry point to your Lambda function and contains the function initialization (during Cold Starts) and any handlers.
 
 The handlers should be kept simple, check to make sure initialization is complete, and then immediately hand off to the Router. Several handlers may be defined and then referenced by different endpoints in the Lambda API Event section in the CloudFormation template.
 
@@ -131,7 +137,7 @@ Controllers should be written using Object Oriented Programming (Classes).
 
 `models/`
 
-The models directory contain Data Access Objects (DAO) and fetch methods. "Data Access Objects" understand the connections (with authentication) that need to be made and any data transformations that need to take place before returning data back to the controller.
+The `models` directory contain Data Access Objects (DAO) and fetch methods. "Data Access Objects" understand the connections (with authentication) that need to be made and any data transformations that need to take place before returning data back to the controller.
 
 Models should be developed using OOP (Object Oriented Programming) and well thought out so that they can be easily replaced. If a database connection and schema is swapped out for a Restful API endpoint, the downstream controller should not know the difference.
 
@@ -141,15 +147,19 @@ Models use Data Access Objects to perform the authentication, basic parameters, 
 
 `config/`
 
-All (non secret) Config files safe for repositories and use across deployments.
+All (non secret) configuration files and methods safe for repositories and used across your application's deployments can be stored in the `config` directory. The Config object defined in this file is static and exists across invocations of the same instance. It should be initialized during a cold start.
 
 ### Utils directory
 
 `utils/`
 
+Shared methods that serve as tools, helpers, and utilities can be stored in the `utils` directory. These methods should be independent of Configurations, controllers, views, and models here. As your organization develops methods that are constantly re-used, they should probably be deployed as a Lambda Layer.
+
 ### Test directory
 
 `test/`
+
+The `test` directory can be used to store your tests written using Chai or other testing framework.
 
 ### Package JSON file
 
