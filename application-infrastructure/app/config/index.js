@@ -138,8 +138,8 @@ class Config extends Utils.tools._ConfigSuperClass {
 							defaultExpirationInSeconds: (10 * 60),// , // 10 minutes
 							expirationIsOnInterval: true,
 							headersToRetain: "",
-							host: "demo", // log entry friendly (or not)
-							path: "games",  // log entry friendly (or not)
+							hostId: "demo", // log entry friendly (or not)
+							pathId: "games",  // log entry friendly (or not)
 							encrypt: false
 						},
 						{
@@ -148,8 +148,8 @@ class Config extends Utils.tools._ConfigSuperClass {
 							defaultExpirationInSeconds: (1),// , // 1 second
 							expirationIsOnInterval: true,
 							headersToRetain: "",
-							host: "demo", // log entry friendly (or not)
-							path: "prediction", // log entry friendly (or not)
+							hostId: "demo", // log entry friendly (or not)
+							pathId: "prediction", // log entry friendly (or not)
 							encrypt: true
 						}
 					]
@@ -173,8 +173,8 @@ class Config extends Utils.tools._ConfigSuperClass {
 							defaultExpirationInSeconds: (5 * 60),// , // 5 minutes
 							expirationIsOnInterval: true,
 							headersToRetain: "",
-							host: "weather", // log entry friendly (or not)
-							path: "default", // log entry friendly (or not)
+							hostId: "weather", // log entry friendly (or not)
+							pathId: "default", // log entry friendly (or not)
 							encrypt: false
 						}
 					]        
