@@ -23,6 +23,7 @@ const process = async function(event, context) {
 		if (REQ.isValid()) {
 			// logic for routing goes here, and pass to appropriate controller
 			// use if statements or switch statements.
+			REQ.addRoute("main");
 			functionResponse = await Ctrl.main(REQ); // default is main
 		} else {
 			functionResponse = Utils.generateErrorResponse(new Error("Invalid request", "403"));

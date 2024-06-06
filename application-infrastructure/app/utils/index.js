@@ -110,6 +110,12 @@ class Request extends tools.RequestInfo {
 		return this.#route;
 	};
 
+	addRoute(route) {
+		if (this.#route === "-") { this.#route = ""; }
+		this.#route += "/"+route;
+		return this.#route;
+	};
+
 	/**
 	 * Used in the constructor to set validity of the request
 	 * This method may be customized to meet your validation needs
