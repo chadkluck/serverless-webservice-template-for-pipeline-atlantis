@@ -62,6 +62,7 @@ class Request extends tools.RequestInfo {
 
 	/** context */
 	#context = null;
+	#route = "-";
 
 	/**
 	 * Initializes the request data based on the event. Also sets the 
@@ -103,6 +104,10 @@ class Request extends tools.RequestInfo {
 	calcRemainingTimeInMillis(headroomInMillis = 0) {
 		let rt = this.getRemainingTimeInMillis() - headroomInMillis;
 		return (rt > 0 ? rt : 0);
+	};
+
+	getRoute() {
+		return this.#route;
 	};
 
 	/**
@@ -192,9 +197,9 @@ class Log {
 	 *  
 	 * @param {string} text 
 	 * @param {object} obj
-	 * @param {tools.RequestInfo|Request} request
+	 * @param {tools.RequestInfo|Request} REQ
 	 */
-	static async critical ( text, obj, request) {
+	static async critical ( text, obj, REQ) {
 		
 		/* These are pushed onto the array in the same order that the CloudWatch
 		query is expecting to parse out. 
@@ -202,10 +207,10 @@ class Log {
 		-- that parses response logs in template.yml !!                        --
 		*/			
 		let logFields = [];
-		logFields.push(request.getClientIP());
-		logFields.push( (( request.getClientUserAgent() !== "" ) ? request.getClientUserAgent() : "-").replace("|", "") ); // doubtful, but userAgent could have | which will mess with log fields
-		logFields.push( (( request.getClientOrigin() !== "" ) ? request.getClientOrigin() : "-") );
-		logFields.push( (( request.getClientReferer() !== "" ) ? request.getClientReferer() : "-") );
+		logFields.push(REQ.getClientIP());
+		logFields.push( (( REQ.getClientUserAgent() !== "" ) ? REQ.getClientUserAgent() : "-").replace("|", "") ); // doubtful, but userAgent could have | which will mess with log fields
+		logFields.push( (( REQ.getClientOrigin() !== "" ) ? REQ.getClientOrigin() : "-") );
+		logFields.push( (( REQ.getClientReferer() !== "" ) ? REQ.getClientReferer() : "-") );
 
 		/* Join array together into single text string delimited by ' | ' */
 		let msg = logFields.join(" | ")+" | "+text;
@@ -225,9 +230,9 @@ class Log {
 	 * Log the request to CloudWatch
 	 * 
 	 * @param {object} response 
-	 * @param {tools.RequestInfo|Request} request
+	 * @param {tools.RequestInfo|Request} REQ
 	 */
-	static async response(response, request) {
+	static async response(response, REQ) {
 
 		/* These are pushed onto the array in the same order that the CloudWatch
 		query is expecting to parse out. 
@@ -240,11 +245,11 @@ class Log {
 		const statusCode = response.statusCode;
 		const bytes = (response.body !== null) ? Buffer.byteLength(response.body, 'utf8') : 0; // calculate byte size of response.body
 		const execms = ('x-exec-ms' in response.headers) ? response.headers['x-exec-ms'] : "-";
-		const clientIP = request.getClientIP();
-		const userAgent = request.getClientUserAgent();
-		const origin = request.getClientOrigin();
-		const referer = request.getClientReferer();
-		const route = request.getRoute();
+		const clientIP = REQ.getClientIP();
+		const userAgent = REQ.getClientUserAgent();
+		const origin = REQ.getClientOrigin();
+		const referer = REQ.getClientReferer();
+		const route = REQ.getRoute();
 		const params = "-";
 		const key = "-";
 
