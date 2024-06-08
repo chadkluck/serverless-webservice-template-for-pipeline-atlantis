@@ -56,20 +56,26 @@ const findGame = async (REQ) => {
 
 	const timer = new Utils.tools.Timer("Find Game Controller Task", true);
 
-	const data = await getGames(REQ).toObject().games;
 
-	// as long as we got what we expected, pick a game based on cosmic chance
-	if( data instanceof Object && "gamechoices" in data && Array.isArray(data.gamechoices) ) {
-		value = data.gamechoices.find(game => game.toUpperCase() === REQ.getProperties().game.toUpperCase());
-	}
+	if (REQ.getProperties()?.game) {
 
-	// if value is null, search hiddengames
-	if (value === null && "hiddengames" in data && Array.isArray(data.hiddengames)) {
-		let i = data.hiddengames.find(game => game.toUpperCase() === REQ.getProperties().game.toUpperCase());
-		if (i) {
-			value = ((i+1)*-1);
+		const data = (await getGames(REQ)).toObject().games;
+
+		// as long as we got what we expected, pick a game based on cosmic chance
+		if( data instanceof Object && "gamechoices" in data && Array.isArray(data.gamechoices)) {
+			value = data.gamechoices.findIndex(game => game.toUpperCase() === REQ.getProperties().game.toUpperCase());
 		}
+
+		// if value is null, search hiddengames
+		if (value === null && "hiddengames" in data && Array.isArray(data.hiddengames)) {
+			let i = data.hiddengames.findIndex(game => game.toUpperCase() === REQ.getProperties().game.toUpperCase());
+			if (i) {
+				value = ((i+1)*-1);
+			}
+		}		
 	}
+
+
 
 	timer.stop();
 
