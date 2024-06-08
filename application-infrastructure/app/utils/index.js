@@ -47,7 +47,7 @@ const generateErrorResponse = function (e, statusCode = "400") {
 	}; 
 
 	// send the error message to the console as Utils.tools.Log.critical bypasses any debug silencer
-	logCritical(statusCode + " " + e.message);
+	Log.critical(statusCode + " " + e.message);
 
 	var response = {statusCode: statusCode, headers: headers, body: body };
 
