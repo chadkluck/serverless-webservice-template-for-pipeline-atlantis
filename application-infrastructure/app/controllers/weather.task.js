@@ -1,5 +1,5 @@
 const Utils = require("../utils");
-const WeatherSvc = require("../services/weather.service");
+const WeatherSvc = require("../models/weather.service");
 
 /* Tasks are async functions that are dispatched by controllers
 */
