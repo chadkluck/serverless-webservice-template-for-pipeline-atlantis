@@ -12,12 +12,12 @@ const main = async (REQ) => {
 
 	const timer = new Utils.tools.Timer("Main.controller", true);
 
+	let response = new Utils.Response();
+
 	/* Tasks - We will be calling multiple remote APIs simultaneously. */
-	let appTasks = []; // we'll collect the tasks and their promises here
-	let appCompletedTasks = [];
 
 	try {
-		
+		let appTasks = []; // we'll collect the tasks and their promises here
 
 		appTasks.push(GamesTask.getGame(REQ));
 		appTasks.push(PredictionTask.getPrediction(REQ));
@@ -27,9 +27,12 @@ const main = async (REQ) => {
 		appTasks.push(GamesTask.getGames(REQ));
 
 		/* this will return everything promised into an indexed array */
-		appCompletedTasks = await Promise.all(appTasks);
+		const appCompletedTasks = await Promise.all(appTasks);
 
-		resolve(appCompletedTasks);
+		// loop through appComplatedTasks and add to reponse
+		appCompletedTasks.forEach(task => {
+			response.addItem(task);
+		});
 
 	} catch (error) {
 		Utils.tools.DebugAndLog.error(`Main Controller error: ${error.message}`, error.stack);
@@ -37,7 +40,7 @@ const main = async (REQ) => {
 	};
 	
 	timer.stop();
-	return appCompletedTasks;
+	return response;
 
 };
 

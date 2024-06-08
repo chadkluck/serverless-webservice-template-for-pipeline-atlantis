@@ -20,21 +20,16 @@ const process = async function(event, context) {
 
 	try {
 
-		let responses = null;
+		let response = null;
 
 		if (REQ.isValid()) {
 			// logic for routing goes here, and pass to appropriate controller
 			// use if statements or switch statements.
 			REQ.logRoute("main");
-			responses = await Ctrl.main(REQ); // default is main
+			response = await Ctrl.main(REQ); // default is main
 		} else {
-			responses = Utils.generateErrorResponse(new Error("Invalid request", "403"));
+			response = Utils.generateErrorResponse(new Error("Invalid request", "403"));
 		}
-
-		// loop through responses and assemble into single object
-		response = responses.reduce((acc, curr) => {
-			return {...acc, ...curr};
-		}, {});
 
 		
 	} catch (error) {
