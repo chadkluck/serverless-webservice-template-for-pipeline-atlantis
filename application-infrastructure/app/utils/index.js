@@ -264,7 +264,7 @@ class Log {
 		const userAgent = REQ.getClientUserAgent();
 		const origin = REQ.getClientOrigin();
 		const referer = REQ.getClientReferer();
-		const route = REQ.getRoute();
+		const route = REQ.getRouteLog();
 		const params = "-";
 		const key = "-";
 
