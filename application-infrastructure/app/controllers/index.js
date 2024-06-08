@@ -1,5 +1,7 @@
 const Utils = require("../utils");
-const Tasks = require("./tasks.js");
+const GamesTask = require("./games.task");
+const PredictionTask = require("./prediction.task");
+const WeatherTask = require("./weather.task");
 
 /**
  * 
@@ -8,33 +10,35 @@ const Tasks = require("./tasks.js");
  */
 const main = async (REQ) => {
 
-	const timerMain = new Utils.tools.Timer("Main.controller", true);
+	const timer = new Utils.tools.Timer("Main.controller", true);
 
-	return new Promise(async (resolve, reject) => {
+	/* Tasks - We will be calling multiple remote APIs simultaneously. */
+	let appTasks = []; // we'll collect the tasks and their promises here
+	let appCompletedTasks = [];
 
-		try {
-			
-			/* Tasks - We will be calling multiple remote APIs simultaneously. */
-			let appTasks = []; // we'll collect the tasks and their promises here
+	try {
+		
 
-			appTasks.push(Tasks.getGames(REQ));
-			appTasks.push(Tasks.getPrediction(REQ));
-			appTasks.push(Tasks.getWeather(REQ));
+		appTasks.push(GamesTask.getGame(REQ));
+		appTasks.push(PredictionTask.getPrediction(REQ));
+		appTasks.push(WeatherTask.getWeather(REQ));
 
-			/* this will return everything promised into an indexed array */
-			const appCompletedTasks = await Promise.all(appTasks);
+		appTasks.push(GamesTask.findGame(REQ));
+		appTasks.push(GamesTask.getGames(REQ));
 
-			timerMain.stop();
+		/* this will return everything promised into an indexed array */
+		appCompletedTasks = await Promise.all(appTasks);
 
-			resolve(appCompletedTasks);
+		resolve(appCompletedTasks);
 
-		} catch (error) {
-			Utils.tools.DebugAndLog.error(`Main Controller error: ${error.message}`, error.stack);
-			response = Utils.generateErrorResponse(new Error("Application encountered an error. Main", "500"));
-			timerMain.stop();
-			reject( response );
-		};
-	});
+	} catch (error) {
+		Utils.tools.DebugAndLog.error(`Main Controller error: ${error.message}`, error.stack);
+		response = Utils.generateErrorResponse(new Error("Application encountered an error. Main", "500"));
+	};
+	
+	timer.stop();
+	return appCompletedTasks;
+
 };
 
 module.exports = {

@@ -16,26 +16,34 @@ const process = async function(event, context) {
 	
 	Utils.tools.DebugAndLog.debug("Received event", event);
 	// this will hold the final response we send back to the calling handler
-	let functionResponse = null;
+	let response = null;
 
 	try {
+
+		let responses = null;
 
 		if (REQ.isValid()) {
 			// logic for routing goes here, and pass to appropriate controller
 			// use if statements or switch statements.
-			REQ.addRoute("main");
-			functionResponse = await Ctrl.main(REQ); // default is main
+			REQ.logRoute("main");
+			responses = await Ctrl.main(REQ); // default is main
 		} else {
-			functionResponse = Utils.generateErrorResponse(new Error("Invalid request", "403"));
+			responses = Utils.generateErrorResponse(new Error("Invalid request", "403"));
 		}
+
+		// loop through responses and assemble into single object
+		response = responses.reduce((acc, curr) => {
+			return {...acc, ...curr};
+		}, {});
+
 		
 	} catch (error) {
 		Utils.tools.DebugAndLog.error(`Fatal error: ${error.message}`, JSON.stringify(error.stack ));
-		functionResponse = Utils.generateErrorResponse(new Error("Application encountered an error. Twenty Two", "500"));
+		response = Utils.generateErrorResponse(new Error("Application encountered an error. Twenty Two", "500"));
 	}
 
-	Utils.Log.response(functionResponse, REQ);
-	return functionResponse;
+	Utils.Log.response(response, REQ);
+	return response;
 
 };
 

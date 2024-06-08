@@ -63,6 +63,7 @@ class Request extends tools.RequestInfo {
 	/** context */
 	#context = null;
 	#route = "-";
+	#properties = {};
 
 	/**
 	 * Initializes the request data based on the event. Also sets the 
@@ -79,11 +80,19 @@ class Request extends tools.RequestInfo {
 		this.#context = context;
 	};
 
-	#getContext() {
+	getContext() {
 		if (this.#context === null) {
 			tools.DebugAndLog.warn("Context for request is null but was requested. Set context along with event when constructing Request object");
 		}
 		return this.#context;
+	};
+
+	setProperties(obj) {
+		this.#properties.game = obj;
+	};
+
+	getProperties() {
+		return this.#properties;
 	};
 
 	/**
@@ -91,7 +100,7 @@ class Request extends tools.RequestInfo {
 	 * @returns {number} The remaining time before Lambda times out. 1000 if context is not set in Request object.
 	 */
 	getRemainingTimeInMillis() {
-		return this.#getContext().getRemainingTimeInMillis() || 1000;
+		return this.getContext().getRemainingTimeInMillis() || 1000;
 	};
 
 	/**
@@ -106,11 +115,11 @@ class Request extends tools.RequestInfo {
 		return (rt > 0 ? rt : 0);
 	};
 
-	getRoute() {
+	getRouteLog() {
 		return this.#route;
 	};
 
-	addRoute(route) {
+	logRoute(route) {
 		if (this.#route === "-") { this.#route = ""; }
 		this.#route += "/"+route;
 		return this.#route;

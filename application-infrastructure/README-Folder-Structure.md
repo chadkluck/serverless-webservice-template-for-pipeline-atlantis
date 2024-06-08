@@ -155,6 +155,12 @@ All (non secret) configuration files and methods safe for repositories and used 
 
 Shared methods that serve as tools, helpers, and utilities can be stored in the `utils` directory. These methods should be independent of Configurations, controllers, views, and models here. As your organization develops methods that are constantly re-used, they should probably be deployed as a Lambda Layer.
 
+### Data Directory
+
+`data/`
+
+The `data` directory contains supplemental static data that can be used for mapping and enhancing data returned by your application.
+
 ### Test directory
 
 `test/`

@@ -11,14 +11,14 @@ const PredictionSvc = require("../models/prediction.service");
  * @returns {Utils.Response} a randomly selected game
  */
 const getPrediction = async (REQ) => {
-	let d = "";
+	let value = "";
 	const timer = new Utils.tools.Timer("Prediction Controller Task", true);
 	const data = await PredictionSvc.get(REQ);
 	if( data instanceof Object && "prediction" in data && typeof data.prediction === "string" ) {
-		d = data.prediction;
+		value = data.prediction;
 	}
 	timer.stop();
-	return new Utils.Response(d, "prediction");
+	return new Utils.Response(value, "prediction");
 };
 
 module.exports = {
