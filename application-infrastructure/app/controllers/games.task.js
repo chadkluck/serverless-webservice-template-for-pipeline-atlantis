@@ -21,7 +21,7 @@ const getGame = async (REQ) => {
 
 	const timer = new Utils.tools.Timer("Game Controller Task", true);
 
-	const data = await getGames(REQ).toObject().games;
+	const data = (await getGames(REQ)).toObject().games;
 
 	if( data instanceof Object && "gamechoices" in data && Array.isArray(data.gamechoices) ) {
 
