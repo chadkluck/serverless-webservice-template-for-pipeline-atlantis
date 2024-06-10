@@ -13,7 +13,7 @@ const getGames = async (REQ) => {
 	const timer = new Utils.tools.Timer("Games Controller Task", true);
 	const data = await GamesSvc.get(REQ);
 	timer.stop();
-	return new Utils.Response(data, "games");
+	return data;
 };
 
 const getGame = async (REQ) => {
@@ -21,7 +21,7 @@ const getGame = async (REQ) => {
 
 	const timer = new Utils.tools.Timer("Game Controller Task", true);
 
-	const data = (await getGames(REQ)).toObject().games;
+	const data = await getGames(REQ);
 
 	if( data instanceof Object && "gamechoices" in data && Array.isArray(data.gamechoices) ) {
 
@@ -47,7 +47,7 @@ const getGame = async (REQ) => {
 	
 	timer.stop();
 
-	return new Utils.Response(value, "game");
+	return value;
 
 };
 
@@ -59,7 +59,7 @@ const findGame = async (REQ) => {
 
 	if (REQ.getProperties()?.game) {
 
-		const data = (await getGames(REQ)).toObject().games;
+		const data = await getGames(REQ);
 
 		// as long as we got what we expected, pick a game based on cosmic chance
 		if( data instanceof Object && "gamechoices" in data && Array.isArray(data.gamechoices)) {
@@ -75,11 +75,9 @@ const findGame = async (REQ) => {
 		}		
 	}
 
-
-
 	timer.stop();
 
-	return new Utils.Response(value, "gameNumber");
+	return value;
 
 };
 

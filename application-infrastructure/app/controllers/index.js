@@ -17,22 +17,49 @@ const main = async (REQ) => {
 	/* Tasks - We will be calling multiple remote APIs simultaneously. */
 
 	try {
+
+		// gather the pieces
+		const games_getGame = GamesTask.getGame(REQ)
+		const games_findGame = GamesTask.findGame(REQ);
+		const games_getGames = GamesTask.getGames(REQ);
+
+		const prediction_getPrediction = PredictionTask.getPrediction(REQ);
+		const weather_getWeather = WeatherTask.getWeather(REQ)
+
+
 		let appTasks = []; // we'll collect the tasks and their promises here
 
-		appTasks.push(GamesTask.getGame(REQ));
-		appTasks.push(PredictionTask.getPrediction(REQ));
-		appTasks.push(WeatherTask.getWeather(REQ));
+		appTasks.push(games_getGame);
+		appTasks.push(games_findGame);
+		appTasks.push(games_getGames);
 
-		appTasks.push(GamesTask.findGame(REQ));
-		appTasks.push(GamesTask.getGames(REQ));
+		appTasks.push(prediction_getPrediction);
+		appTasks.push(weather_getWeather);
 
 		/* this will return everything promised into an indexed array */
-		const appCompletedTasks = await Promise.all(appTasks);
+		await Promise.all(appTasks);
 
-		// loop through appComplatedTasks and add to reponse
-		appCompletedTasks.forEach(task => {
-			response.addItem(task);
+		// assemble the pieces
+		const statusCode = 200;
+
+		const headers = {
+			"Content-Type": "application/json"
+		};
+
+		const body = JSON.stringify({
+			game: games_getGame,
+			find: games_findGame,
+			games: games_getGames,
+
+			prediction: prediction_getPrediction,
+			weather: weather_getWeather
 		});
+
+		response = {
+			statusCode,
+			headers,
+			body
+		};
 
 	} catch (error) {
 		Utils.tools.DebugAndLog.error(`Main Controller error: ${error.message}`, error.stack);

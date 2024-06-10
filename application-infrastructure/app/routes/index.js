@@ -29,7 +29,6 @@ const process = async function(event, context) {
 			response = Utils.generateErrorResponse(new Error("Invalid request", "403"));
 		}
 
-		
 	} catch (error) {
 		Utils.tools.DebugAndLog.error(`Fatal error: ${error.message}`, JSON.stringify(error.stack ));
 		response = Utils.generateErrorResponse(new Error("Application encountered an error. Twenty Two", "500"));
