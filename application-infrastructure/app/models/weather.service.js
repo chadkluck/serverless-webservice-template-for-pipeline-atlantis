@@ -32,8 +32,6 @@ module.exports = {
 				Utils.tools.DebugAndLog.warn("weather api key not set - please update in SSM Parameter Store");
 			}
 
-			body = cacheObj.getBody(true);
-
 		} catch (error) {
 			body = { message: "Error retrieving weather" };
 			Utils.tools.DebugAndLog.error(`Weather Service: ${error.message}`, JSON.stringify(error.stack));
