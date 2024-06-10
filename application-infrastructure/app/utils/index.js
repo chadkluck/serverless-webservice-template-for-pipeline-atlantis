@@ -257,7 +257,7 @@ class Log {
 		*/
 
 		const loggingType = "RESPONSE";
-		const statusCode = response.statusCode;
+		const statusCode = response?.statusCode || 200;
 		const bytes = (response.body !== null) ? Buffer.byteLength(response.body, 'utf8') : 0; // calculate byte size of response.body
 		const execms = ('x-exec-ms' in response.headers) ? response.headers['x-exec-ms'] : "-";
 		const clientIP = REQ.getClientIP();
