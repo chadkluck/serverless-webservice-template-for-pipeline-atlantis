@@ -20,8 +20,6 @@ const process = async function(event, context) {
 
 	try {
 
-		let response = null;
-
 		if (REQ.isValid()) {
 			// logic for routing goes here, and pass to appropriate controller
 			// use if statements or switch statements.
