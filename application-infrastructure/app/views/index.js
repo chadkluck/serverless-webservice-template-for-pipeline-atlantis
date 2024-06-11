@@ -24,35 +24,42 @@ exports.root = async (REQ) => {
 	
 		try {
 	
-			// gather the pieces
-			const games_getGame = GamesTask.getGame(REQ)
-			const games_findGame = GamesTask.findGame(REQ);
-			const games_getGames = GamesTask.getGames(REQ);
+			// // gather the pieces
+			// const games_getGame = GamesTask.getGame(REQ)
+			// const games_findGame = GamesTask.findGame(REQ);
+			// const games_getGames = GamesTask.getGames(REQ);
 	
-			const prediction_getPrediction = PredictionTask.getPrediction(REQ);
-			const weather_getWeather = WeatherTask.getWeather(REQ)
+			// const prediction_getPrediction = PredictionTask.getPrediction(REQ);
+			// const weather_getWeather = WeatherTask.getWeather(REQ)
 	
-			let appTasks = []; // we'll collect the tasks and their promises here
+			// let appTasks = []; // we'll collect the tasks and their promises here
 	
-			appTasks.push(games_getGame);
-			appTasks.push(games_findGame);
-			appTasks.push(games_getGames);
+			// appTasks.push(games_getGame);
+			// appTasks.push(games_findGame);
+			// appTasks.push(games_getGames);
 	
-			appTasks.push(prediction_getPrediction);
-			appTasks.push(weather_getWeather);
+			// appTasks.push(prediction_getPrediction);
+			// appTasks.push(weather_getWeather);
 	
+			appTasks.push(GamesTask.getGame(REQ));
+			appTasks.push(GamesTask.findGame(REQ));
+			appTasks.push(GamesTask.getGames(REQ));
+	
+			appTasks.push(PredictionTask.getPrediction(REQ));
+			appTasks.push(WeatherTask.getWeather(REQ));
+
 			/* this will return everything promised into an indexed array */
 			await Promise.all(appTasks);
 	
 			// assemble the pieces
 			response = GenericJsonResponse.status200;
 			response.body = JSON.stringify({
-				game: games_getGame,
-				find: games_findGame,
-				games: games_getGames,
+				game: appTasks[0],
+				find: appTasks[1],
+				games: appTasks[3],
 	
-				prediction: prediction_getPrediction,
-				weather: weather_getWeather
+				prediction: appTasks[4],
+				weather: appTasks[5],
 			});
 	
 		} catch (error) {
