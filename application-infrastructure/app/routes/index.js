@@ -29,6 +29,8 @@ const process = async function(event, context) {
 			response = Utils.generateErrorResponse(new Error("Invalid request", "403"));
 		}
 
+		response.headers['x-exec-ms'] = REQ.timerStop();
+
 	} catch (error) {
 		Utils.tools.DebugAndLog.error(`Fatal error: ${error.message}`, JSON.stringify(error.stack ));
 		response = Utils.generateErrorResponse(new Error("Application encountered an error. Twenty Two", "500"));
