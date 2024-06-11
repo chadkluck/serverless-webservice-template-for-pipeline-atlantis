@@ -25,6 +25,7 @@ For other notes and info, refer to README.md
 const Utils = require("./utils/index.js");
 const { Config } = require("./config/index.js");
 const Routes = require("./routes/index.js");
+const genericResponse = require("./views/status-generic.js")
 
 /* log a cold start and keep track of init time */
 const coldStartInitTimer = new Utils.tools.Timer("coldStartTimer", true);
@@ -60,13 +61,10 @@ exports.handler = async (event, context, callback) => {
 		/* Log the error */
 		Utils.tools.DebugAndLog.error(`500 | Unhandled Execution Error in Handler ${error.message}`, JSON.stringify(error.stack));
 
-		response = {
-			statusCode: 500,
-			body: JSON.stringify({
-				message: 'Error initializing request - 1701-D' // 1701-D just so we know it is an app and not API Gateway error
-			}),
-			headers: {'content-type': 'application/json'}
-		};
+		response = genericResponse.status500;
+		response.body = JSON.stringify({
+			message: 'Error initializing request - 1701-D' // 1701-D just so we know it is an app and not API Gateway error
+		});
 
 	} finally {
 

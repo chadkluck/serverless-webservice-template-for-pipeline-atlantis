@@ -1,43 +1,63 @@
-// const Utils = require("../utils");
-// const {Config} = require("../config");
+const Utils = require("../utils");
+const GamesTask = require("../controllers/games.task");
+const PredictionTask = require("../controllers/prediction.task");
+const WeatherTask = require("../controllers/weather.task");
 
-const template = function (data) {
+const JsonStatusResponses = require("./json.status.generic");
+
+/**
+ * 
+ * @param {Utils.Request} REQ 
+ * @returns 
+ */
+exports.root = async (REQ) => {
+
+	const timer = new Utils.tools.Timer("Main View", true);
+
+	let response = JsonStatusResponses.status500;
+
+	/* Controller Tasks - We will be calling multiple remote APIs simultaneously. */
+
+	try {
+
+		// gather the pieces
+		const games_getGame = GamesTask.getGame(REQ)
+		const games_findGame = GamesTask.findGame(REQ);
+		const games_getGames = GamesTask.getGames(REQ);
+
+		const prediction_getPrediction = PredictionTask.getPrediction(REQ);
+		const weather_getWeather = WeatherTask.getWeather(REQ)
+
+
+		let appTasks = []; // we'll collect the tasks and their promises here
+
+		appTasks.push(games_getGame);
+		appTasks.push(games_findGame);
+		appTasks.push(games_getGames);
+
+		appTasks.push(prediction_getPrediction);
+		appTasks.push(weather_getWeather);
+
+		/* this will return everything promised into an indexed array */
+		await Promise.all(appTasks);
+
+		// assemble the pieces
+		response = JsonStatusResponses.status200;
+		response.body = JSON.stringify({
+			game: games_getGame,
+			find: games_findGame,
+			games: games_getGames,
+
+			prediction: prediction_getPrediction,
+			weather: weather_getWeather
+		});
+
+	} catch (error) {
+		Utils.tools.DebugAndLog.error(`Main Controller error: ${error.message}`, error.stack);
+		response = Utils.generateErrorResponse(new Error("Application encountered an error. Main", "500"));
+	};
 	
-			/**
-			 *  Responses from each task are collected into this Response object 
-			 */
-			const dataResponse = new Utils.Response({game: "", prediction: "", weather: {}});
-
-			/* Go through the indexed array of task responses and insert
-			them by key into the final response object. */
-			for (const item of appCompletedTasks) {
-				Utils.tools.DebugAndLog.debug("Response Item",item);
-				dataResponse.addItemByKey(item);
-			};
-
-			/**
-			 * A response object formatted for API Gateway
-			 */
-			let response = {
-				statusCode: 200,
-				body: dataResponse.toString(),
-				headers: {'content-type': 'application/json'}
-			};
+	timer.stop();
 	return response;
-};
 
-const weather = function (data) {
-	return data;
-};
-
-const prediction = function (data) {
-	return data;
-};
-
-const game = function (data) {
-	return data;
-};
-
-module.exports = {
-	template
 };

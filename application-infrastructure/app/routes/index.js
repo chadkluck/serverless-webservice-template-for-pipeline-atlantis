@@ -1,5 +1,6 @@
 const Utils = require("../utils");
 const Ctrl = require("../controllers");
+const Views = require("../views");
 
 /**
  * Process the request
@@ -24,7 +25,7 @@ const process = async function(event, context) {
 			// logic for routing goes here, and pass to appropriate controller
 			// use if statements or switch statements.
 			REQ.logRoute("main");
-			response = await Ctrl.main(REQ); // default is main
+			response = await Views.main(REQ); // default is main
 		} else {
 			response = Utils.generateErrorResponse(new Error("Invalid request", "403"));
 		}
