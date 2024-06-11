@@ -7,7 +7,7 @@ const GamesSvc = require("../models/games.service");
 /**
  * Calls the Games Service for a list of games
  * @param {Utils.Request} REQ Request Object
- * @returns {{gamechoices: Array<string>, hiddengames: Array<string>}} A list of games
+ * @returns {Promise<{gamechoices: Array<string>, hiddengames: Array<string>}>} A list of games
  */
 const getGames = async (REQ) => {
 	return new Promise(async (resolve, reject) => {
@@ -21,7 +21,7 @@ const getGames = async (REQ) => {
 /**
  * 
  * @param {Utils.Request} REQ 
- * @returns {string} A random or requested game by number
+ * @returns {Promise<string>} A random or requested game by number
  */
 const getGame = async (REQ) => {
 	return new Promise(async (resolve, reject) => {
@@ -64,7 +64,7 @@ const getGame = async (REQ) => {
 /**
  * 
  * @param {Utils.Request} REQ 
- * @returns {number} The index of the requested game or null if not found
+ * @returns {Promise<number>} The index of the requested game or null if not found
  */
 const findGame = async (REQ) => {
 	return new Promise(async (resolve, reject) => {
