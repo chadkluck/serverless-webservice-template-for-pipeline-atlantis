@@ -13,6 +13,7 @@ const getGames = async (REQ) => {
 	return new Promise(async (resolve, reject) => {
 		const timer = new Utils.tools.Timer("Games Controller Task", true);
 		const data = await GamesSvc.get(REQ);
+		Utils.tools.DebugAndLog.debug("Games Controller Task: Retrieved games", data);
 		timer.stop();
 		resolve(data);
 	});
@@ -53,6 +54,8 @@ const getGame = async (REQ) => {
 				value = data.gamechoices[Math.floor(Math.random() * data.gamechoices.length)];
 			}
 		}
+
+		Utils.tools.DebugAndLog.debug("Game Controller Task: Retrieved game", value);
 		
 		timer.stop();
 
@@ -90,6 +93,8 @@ const findGame = async (REQ) => {
 				}
 			}		
 		}
+
+		Utils.tools.DebugAndLog.debug("Find Game Controller Task: Found game", value);
 
 		timer.stop();
 

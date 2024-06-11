@@ -12,52 +12,57 @@ const GenericJsonResponse = require("./json.status.generic");
  */
 exports.root = async (REQ) => {
 
-	const timer = new Utils.tools.Timer("Main View", true);
 
-	let response = GenericJsonResponse.status500;
-
-	/* Controller Tasks - We will be calling multiple remote APIs simultaneously. */
-
-	try {
-
-		// gather the pieces
-		const games_getGame = GamesTask.getGame(REQ)
-		const games_findGame = GamesTask.findGame(REQ);
-		const games_getGames = GamesTask.getGames(REQ);
-
-		const prediction_getPrediction = PredictionTask.getPrediction(REQ);
-		const weather_getWeather = WeatherTask.getWeather(REQ)
+	return new Promise(async (resolve, reject) => {
 
 
-		let appTasks = []; // we'll collect the tasks and their promises here
+		const timer = new Utils.tools.Timer("Main View", true);
 
-		appTasks.push(games_getGame);
-		appTasks.push(games_findGame);
-		appTasks.push(games_getGames);
-
-		appTasks.push(prediction_getPrediction);
-		appTasks.push(weather_getWeather);
-
-		/* this will return everything promised into an indexed array */
-		await Promise.all(appTasks);
-
-		// assemble the pieces
-		response = GenericJsonResponse.status200;
-		response.body = JSON.stringify({
-			game: games_getGame,
-			find: games_findGame,
-			games: games_getGames,
-
-			prediction: prediction_getPrediction,
-			weather: weather_getWeather
-		});
-
-	} catch (error) {
-		Utils.tools.DebugAndLog.error(`Main Controller error: ${error.message}`, error.stack);
-		response = Utils.generateErrorResponse(new Error("Application encountered an error. Main", "500"));
-	};
+		let response = GenericJsonResponse.status500;
 	
-	timer.stop();
-	return response;
+		/* Controller Tasks - We will be calling multiple remote APIs simultaneously. */
+	
+		try {
+	
+			// gather the pieces
+			const games_getGame = GamesTask.getGame(REQ)
+			const games_findGame = GamesTask.findGame(REQ);
+			const games_getGames = GamesTask.getGames(REQ);
+	
+			const prediction_getPrediction = PredictionTask.getPrediction(REQ);
+			const weather_getWeather = WeatherTask.getWeather(REQ)
+	
+			let appTasks = []; // we'll collect the tasks and their promises here
+	
+			appTasks.push(games_getGame);
+			appTasks.push(games_findGame);
+			appTasks.push(games_getGames);
+	
+			appTasks.push(prediction_getPrediction);
+			appTasks.push(weather_getWeather);
+	
+			/* this will return everything promised into an indexed array */
+			await Promise.all(appTasks);
+	
+			// assemble the pieces
+			response = GenericJsonResponse.status200;
+			response.body = JSON.stringify({
+				game: games_getGame,
+				find: games_findGame,
+				games: games_getGames,
+	
+				prediction: prediction_getPrediction,
+				weather: weather_getWeather
+			});
+	
+		} catch (error) {
+			Utils.tools.DebugAndLog.error(`Main Controller error: ${error.message}`, error.stack);
+			response = Utils.generateErrorResponse(new Error("Application encountered an error. Main", "500"));
+		};
+		
+		timer.stop();
+		resolve(response);
+
+	});
 
 };
