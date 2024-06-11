@@ -64,6 +64,7 @@ class Request extends tools.RequestInfo {
 	#context = null;
 	#route = "-";
 	#properties = {};
+	#timer = null;
 
 	/**
 	 * Initializes the request data based on the event. Also sets the 
@@ -74,6 +75,7 @@ class Request extends tools.RequestInfo {
 		super(event);
 		this.#setIsValid();
 		this.#setContext(context);
+		this.#timer = new tools.Timer("Execution Timer", true);
 	};
 
 	#setContext(context) {
@@ -93,6 +95,10 @@ class Request extends tools.RequestInfo {
 
 	getProperties() {
 		return this.#properties;
+	};
+
+	timerStop() {
+		return this.#timer?.stop() || 0;
 	};
 
 	/**

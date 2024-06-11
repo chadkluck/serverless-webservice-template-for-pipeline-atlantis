@@ -3,7 +3,7 @@ const GamesTask = require("../controllers/games.task");
 const PredictionTask = require("../controllers/prediction.task");
 const WeatherTask = require("../controllers/weather.task");
 
-const JsonStatusResponses = require("./json.status.generic");
+const GenericJsonResponse = require("./json.status.generic");
 
 /**
  * 
@@ -14,7 +14,7 @@ exports.root = async (REQ) => {
 
 	const timer = new Utils.tools.Timer("Main View", true);
 
-	let response = JsonStatusResponses.status500;
+	let response = GenericJsonResponse.status500;
 
 	/* Controller Tasks - We will be calling multiple remote APIs simultaneously. */
 
@@ -42,7 +42,7 @@ exports.root = async (REQ) => {
 		await Promise.all(appTasks);
 
 		// assemble the pieces
-		response = JsonStatusResponses.status200;
+		response = GenericJsonResponse.status200;
 		response.body = JSON.stringify({
 			game: games_getGame,
 			find: games_findGame,
