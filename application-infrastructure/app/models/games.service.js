@@ -1,4 +1,5 @@
 const { Config } = require("../config");
+const Utils = require("../utils");
 const { endpoint, cache } = require("@chadkluck/cache-data");
 
 module.exports = {
@@ -26,6 +27,7 @@ module.exports = {
 				);
 	
 				body = cacheObj.getBody(true);
+				Utils.tools.DebugAndLog.debug("Games Service: retrieved games", body);
 	
 			} catch (error) {
 				body = { message: "Error retrieving games" };
