@@ -40,7 +40,9 @@ exports.root = async (REQ) => {
 	
 			// appTasks.push(prediction_getPrediction);
 			// appTasks.push(weather_getWeather);
-	
+		
+			let appTasks = []; // we'll collect the tasks and their promises here
+
 			appTasks.push(GamesTask.getGame(REQ));
 			appTasks.push(GamesTask.findGame(REQ));
 			appTasks.push(GamesTask.getGames(REQ));
