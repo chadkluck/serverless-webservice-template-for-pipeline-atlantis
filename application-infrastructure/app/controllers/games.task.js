@@ -40,7 +40,7 @@ const getGame = async (REQ) => {
 			game = "Invalid game selection";
 		}
 
-		Utils.tools.DebugAndLog.debug("Game Controller Task: Choose Game: Chosen game", value);
+		Utils.tools.DebugAndLog.debug("Game Controller Task: Choose Game: Chosen game", game);
 		
 		timer.stop();
 
