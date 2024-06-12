@@ -58,10 +58,10 @@ exports.root = async (REQ) => {
 			response.body = JSON.stringify({
 				game: appTasks[0],
 				find: appTasks[1],
-				games: appTasks[3],
+				games: appTasks[2],
 	
-				prediction: appTasks[4],
-				weather: appTasks[5],
+				prediction: appTasks[3],
+				weather: appTasks[4],
 			});
 	
 		} catch (error) {

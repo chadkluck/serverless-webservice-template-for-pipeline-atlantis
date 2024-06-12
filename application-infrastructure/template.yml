@@ -355,7 +355,7 @@ Resources:
 
       CodeUri: app/
       Handler: index.handler
-      Runtime: nodejs18.x
+      Runtime: nodejs20.x
       Timeout: !Ref FunctionTimeOutInSeconds
       MemorySize: !Ref FunctionMaxMemoryInMB
       Role: !GetAtt LambdaExecutionRole.Arn

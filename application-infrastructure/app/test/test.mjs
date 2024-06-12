@@ -1,5 +1,9 @@
 import Utils from '../utils/index.js';
 
+import GamesUtils from '../controllers/games.utils.js';
+
+import * as fs from 'fs';
+
 import { expect, use } from "chai"; // 4.x pinned in package.json because 5.x doesn't work for node require
 import chaiHttp from "chai-http";
 
@@ -109,4 +113,33 @@ describe("Test Utils", () => {
 		})
 
 	});
+});
+
+describe("Test Games", () => {
+
+	const GamesData = JSON.parse(fs.readFileSync('./test/data/games.test.data.json'));
+
+	describe('Search Games', () => {
+		it('Found game', () => {
+			expect(GamesUtils.getIndexOfGame("Chess", GamesData)).to.equal(7);
+		})
+		it('Found hidden game', () => {
+			expect(GamesUtils.getIndexOfGame("Tic-Tac-Toe", GamesData)).to.equal(-1);
+		})
+		it('Game not found', () => {
+			expect(GamesUtils.getIndexOfGame("Monopoly", GamesData)).to.equal(0);
+		})
+	})
+
+	describe('Get Game', () => {
+		it('Get game by index', () => {
+			expect(GamesUtils.selectedGame(7, GamesData)).to.equal("Chess");
+		})
+		it('Get hidden game by index', () => {
+			expect(GamesUtils.selectedGame(-1, GamesData)).to.equal("Tic-Tac-Toe");
+		})
+		it('Game not found', () => {
+			expect(GamesUtils.selectedGame(22, GamesData)).to.be.null;
+		})
+	})
 });
