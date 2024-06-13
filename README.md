@@ -1,34 +1,36 @@
 # Serverless Webservice Template for Pipeline Atlantis
 
+> Note: As of June 2024 this document as well as tutorials are undergoing revisions and may be inaccurate. Updates should be completed by the end of July 2024
+
 A Web Service template for a serverless Node.js application using AWS Lambda and API Gateway that provides access to external remote api endpoints, caching using AWS DynamoDb, and S3, and stored secrets utilizing SSM Parameter Store.
 
 Using this as a template for your API Gateway/Lambda applications will start you off with a secure way to manage secret keys needed by your application, an internal, secure and self-managed caching system, asynchronous task management for accessing several datasources simultaneously for faster processing.
 
-Developed using the Serverless Application Model (SAM) for packaging infrastructure and code. It is deployed using the Atlantis Project Stack template for a Continuous Integration and Continuous Delivery (CI/CD) pipeline. The nessary parameters for this application's CloudFormation template are passed from the pipeline with additional parameters set in the `template-configuration.json` file.
+Developed using the Serverless Application Model (SAM) for packaging infrastructure and code. It is deployed using the Atlantis Pipeline starter template for a Continuous Integration and Continuous Delivery (CI/CD) pipeline. The necessary parameters for this application's CloudFormation template are passed from the pipeline with additional parameters set in the `template-configuration.json` file.
 
-Note: This is not a stand-alone application. It was developed to be deployed using 'Atlantis CI/CD Pipeline with CloudFormation' which must be deployed via CloudFormation first (see Prerequisite).
+Note: This is not a stand-alone application. It was developed to be deployed using 'Atlantis Pipeline starter CloudFormation template' which must be deployed via CloudFormation first (see Prerequisite).
 
-## Usage example
+## API Usage example
 
 https://{your-api-gateway-domain}/demo-test/?id=22
 
 ## Prerequisite
 
-This application was created to be deployed by the 'Atlantis CI/CD Pipeline with CloudFormation' developed by Chad Leigh Kluck. Do not proceed unless you have set up an 'Atlantis CI/CD pipeline' for the application in CloudFormation. The pipeline will set up all IAM permissions and introduce you to variables and concepts used within.
+This application was created to be deployed by the 'Atlantis Pipeline with CloudFormation' developed by Chad Leigh Kluck. Do not proceed unless you have set up an 'Atlantis pipeline' for the application in CloudFormation. The pipeline will set up all IAM permissions and introduce you to variables and concepts used within.
 
-It is recommended that you follow the tutorials in the 'Atlantis CI/CD pipeline' README so that you have an understanding of CloudFormation, CodeBuild, CodeDeploy, CodePipeline, and other AWS Services.
+It is recommended that you follow the tutorials in the 'Atlantis pipeline starter template' README so that you have an understanding of CloudFormation, CodeBuild, CodeDeploy, CodePipeline, and other AWS Services.
 
-Atlantis was developed with training in mind and is not only a useful tool for managing deployments, but is also a wonderful resource for understanding CloudFormation and CodePipeline.
+Atlantis was developed as a starter template with training in mind and is not only a useful tool for managing deployments, but is also a wonderful resource for understanding CloudFormation and CodePipeline.
 
 This template can be considered Course #3 of Chad's Steps to Serverless Application Deployment, a set of templates and walk-throughs to help developers learn and deploy serverless while coming away with usable code for their projects. Each of the walk-throughs are available on GitHub.
 
 1. Serverless Introduction (Creating a simple prediction API via AWS CLI using SAM)
-2. Deployment Pipelines (Atlantis CI/CD Pipeline with CloudFormation)
+2. Deployment Pipelines (Atlantis Pipeline with CloudFormation)
 3. Creating a Webservice (this)
 
 ## Installation
 
-Once you have created a pipeline using Atlantis (see prerequisite) and you have a Code Commit repository, you may begin installation.
+Once you have created a pipeline using Atlantis (see prerequisite) and you have a CodeCommit repository, you may begin installation.
 
 For the initial install you will need to complete the following:
 
@@ -43,24 +45,22 @@ For the initial install you will need to complete the following:
 
 This project uses the npm [@chadkluck/cache-data](https://www.npmjs.com/package/@chadkluck/cache-data) which provides internal caching for your application. (You'll learn how to use it in tutorial below).
 
-There is already a package.json file so you just need to run the `npm ci` command from within the `app` directory:
+There is already a package.json file so you just need to run the `npm install` command from within the `application-infrastructure/app` directory:
 
 ```bash
 cd app
-npm ci
+npm install
 ```
-
-If this is your first time using `npm ci` (similar to `npm install` but references the package.json file) you should Google it and see how it differs from `npm install`. And, if you are new to npm, don't worry about it too much right now, but using `install` or `ci` along with gitignore node_modules is the best practice for including *TRUSTED* external packages in your repository. (For why I say and bold TRUSTED in all caps, Google `malicious npm packages`.)
 
 ### 2. Update Deploy Files
 
-For deploys, the majority of parameters are set using the CI/CD pipeline. However, there are a few minor adjustments to be made per application:
+For deploys, the majority of parameters are set using the pipeline. However, there are a few minor adjustments to be made per application:
 
 #### template-configuration.json
 
-- `Parameters` : you can add any parameter settings here. Note you have use of various Variables such as `$DEPLOY_STAGE$` and `$PROJECT_ID$`
-  - `UserAgent`: You can modify this for unique identification when checking remote logs. You can always add `$DEPLOY_STAGE$` to identify the stage
-  - `ApiPathBase`: If left out, the default is `api` or `Prod` (for CodeStar). Since the auto url is random, you can give a quick name and stage to help identify the application and endpoint. Such as `course-ws-$DEPLOY_STAGE$`
+- `Parameters` : you can add any parameter settings here. Note you have use of various Variables such as `$STAGE_ID$` and `$PROJECT_ID$`
+  - `UserAgent`: You can modify this for unique identification when checking remote logs. You can always add `$STAGE_ID$` to identify the stage
+  - `ApiPathBase`: If left out, the default is `api` or `Prod` (for CodeStar). Since the auto url is random, you can give a quick name and stage to help identify the application and endpoint. Such as `course-ws-$STAGE_ID$`
 
 For the tag section of template-configuration.json, leave ProjectStackType, CodeCommitRepo, ProjectStackProjectID, ProjectStackProjectStageID, stage, and env alone. Those are used by the pipeline. However, you may add any additional tags used by your organization.
 
@@ -70,7 +70,7 @@ Around line 8 update `Description` to fit your needs.
 
 ### 3. Deploy demo
 
-You will need to create a branch in your respository that is monitored by a Project Stack Pipeline. Project Stacks creates a deploy pipeline using CloudFormation that automates the deploy process.
+You will need to create a branch in your repository that is monitored by a Project Stack Pipeline. Project Stacks creates a deploy pipeline using CloudFormation that automates the deploy process.
 
 To include the weather api in the demo, sign up for a free account and obtain an api key from  an api key from openweathermap.com and store it in `parameterstorepath/apikey_weather` as a secret. Note that you can obtain the `parameterstorepath` by referring to **SSMParameterStore** in the **Outputs** section of the CloudFormation infrastructure stack used by this application.
 
