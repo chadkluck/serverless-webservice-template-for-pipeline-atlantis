@@ -1,4 +1,4 @@
-# Serverless Webservice Template for Pipeline Atlantis
+# Serverless Web Service Template for Atlantis Pipeline
 
 > Note: As of June 2024 this document as well as tutorials are undergoing revisions and may be inaccurate. Updates should be completed by the end of July 2024
 
