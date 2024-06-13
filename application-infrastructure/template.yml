@@ -355,7 +355,7 @@ Resources:
 
       CodeUri: app/
       Handler: index.handler
-      Runtime: nodejs20.x
+      Runtime: nodejs20.x # https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html
       Timeout: !Ref FunctionTimeOutInSeconds
       MemorySize: !Ref FunctionMaxMemoryInMB
       Role: !GetAtt LambdaExecutionRole.Arn
