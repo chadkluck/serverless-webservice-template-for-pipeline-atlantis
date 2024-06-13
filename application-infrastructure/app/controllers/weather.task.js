@@ -14,7 +14,7 @@ const getWeather = async (REQ) => {
 	const timer = new Utils.tools.Timer("Weather Controller Task", true);
 	const data = await WeatherSvc.get(REQ);
 	timer.stop();
-	return new Utils.Response(data, "weather");
+	return data;
 };
 
 module.exports = {
