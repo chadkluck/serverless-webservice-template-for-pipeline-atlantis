@@ -51,17 +51,17 @@ exports.root = async (REQ) => {
 			appTasks.push(WeatherTask.getWeather(REQ));
 
 			/* this will return everything promised into an indexed array */
-			await Promise.all(appTasks);
+			let a = await Promise.all(appTasks);
 	
 			// assemble the pieces
 			response = GenericJsonResponse.status200;
 			response.body = JSON.stringify({
-				game: appTasks[0],
-				find: appTasks[1],
-				games: appTasks[2],
+				game: a[0],
+				find: a[1],
+				games: a[2],
 	
-				prediction: appTasks[3],
-				weather: appTasks[4],
+				prediction: a[3],
+				weather: a[4],
 			});
 	
 		} catch (error) {
