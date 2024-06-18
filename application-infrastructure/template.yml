@@ -365,8 +365,8 @@ Resources:
       Tracing: !If [ IsNotDevelopment, "Active",  "Disabled"] # X-Ray
       # Required adding policy to deploy pipeline CF template for lambda layers
       Layers:
-        - !Sub "arn:aws:lambda:us-east-2:580247275435:layer:LambdaInsightsExtension:52" # Check for latest version: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Lambda-Insights-extension-versionsx86-64.html
-        - !Sub "arn:aws:lambda:us-east-2:590474943231:layer:AWS-Parameters-and-Secrets-Lambda-Extension:11" # https://docs.aws.amazon.com/systems-manager/latest/userguide/ps-integration-lambda-extensions.html#ps-integration-lambda-extensions-add
+        - !Sub "arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:52" # Update Acct and version based on region: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Lambda-Insights-extension-versionsx86-64.html
+        - !Sub "arn:aws:lambda:${AWS::Region}:590474943231:layer:AWS-Parameters-and-Secrets-Lambda-Extension:11" # Update Acct and version based on region: https://docs.aws.amazon.com/systems-manager/latest/userguide/ps-integration-lambda-extensions.html#ps-integration-lambda-extensions-add
 
       Environment:
         Variables:

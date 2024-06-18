@@ -28,13 +28,13 @@ Any custom Python, Node, or Bash scripts to assist in the build process.
 
 The bash script `generate-put-keys.sh` checks for the existence of required SSM parameters used by the application. If they don't exist, it creates them with either a default value set to `BLANK` or a generated app specific random string that can be used for hashing, encrypting, signing, or other crypto function.
 
-### template YAML files
+### Template YAML files
 
 - `template.yml`
 - `template-swagger.yml`
 - `template-dashboard.yml`
 
-The main CloudFormation template is template.yml but it can be broken down into smaller templates that are included during CloudFormation deployment. Templates for Swagger and Dashboards can get quite long so they can be stored in `template-swagger.yml` and `template-dashboard.yml` respectively.
+The main CloudFormation template is template.yml but it can be broken down into smaller templates that are included during CloudFormation deployment. Templates for Swagger and Dashboards (and Step Functions) can get quite long it is advisable to store them in `template-swagger.yml` and `template-dashboard.yml` respectively and then perform an `Fn::Transform` and `AWS::Include` to bring it in.
 
 #### Swagger Template
 
@@ -71,17 +71,17 @@ A sample file (`sample-samconfig.toml`) is provided by default and can be downlo
 
 `public/`
 
-If you have static files to host in S3 you can place them in the public directory and then add the S3 sync command (`aws s3 sync`) to the list of commands in buildspec.yml. Note that that the S3 bucket must already exist outside of your application's CloudFormation template.
+If you have static files to host in S3 you can place them in the public directory and then add the S3 sync command (`aws s3 sync`) to the list of commands in buildspec.yml. Note that that the S3 bucket must already exist outside of your application's CloudFormation template as CloudFormation will not have deployed the stack before buildspec runs.
 
 ## App or Src directory
 
 `app` or `src`
 
-Whether it is `app` or `src`, it needs to be reflected in the buildspec during the `npm install`, artifact creation, and referenced by the Lambda's `CodeUri` attribute in `template.yml`. `src` is traditional, but may not accurately reflect the contents as it relates to Lambda functions and layers.
-
 This directory stores the code for one or more Lambda functions and/or layers.
 
-The following documentation goes over structure for a single Lambda function written in Node.js using the "Model, View Controller" design pattern, though any language, number of functions, and combination may be used with a slightly different structure.
+Whether it is `app` or `src`, it needs to be reflected in the buildspec during the `npm install`, artifact creation, and referenced by the Lambda's `CodeUri` attribute in `template.yml`. `src` is traditional, but may not accurately reflect the contents as it relates to Lambda functions and layers.
+
+The following documentation goes over structure for a single Lambda function written in Node.js using the "Model, View, Controller" design pattern, though any language, number of functions, and combination thereof may be used with a slightly different structure.
 
 ### Index and Handler JavaScript File
 
@@ -115,7 +115,9 @@ There should only be ONE route and subsequently, ONE view. Much like a web page 
 
 `views/`
 
-A view assembles and formats the end result (response body and headers) that will be returned to the client. This may be the final HTML document, JSON, or XML/RSS feed. It may call a controller directly, call additional views, or a combination.
+A view assembles and formats the end result (response code, headers, and body) that will be returned as a response to API Gateway (and client). This may be the final HTML document, JSON, XML/RSS feed, or file to place in an S3 bucket. 
+
+Views may call a controller directly, call in additional views, or a combination. 
 
 > Views should not include business logic, they should only include document template information for the response. Break a large view into smaller content pieces as a view may contain other content pieces that are shared among other views.
 
@@ -125,13 +127,11 @@ Views may also include information beyond the body of the document such as respo
 
 `controllers/`
 
-Controllers contain the business logic that takes the request, analyzes it's properties such as query string and path parameters, transforms it, makes a request to a model (database or other endpoint), and then further analyzes and transforms data before returning it to the view.
+Controllers contain the business logic that takes the request, analyzes its properties such as query string and path parameters, transforms it, makes a request to a model (database or other endpoint), and then further analyzes and transforms data before returning it to the view.
 
 Much like views, controllers should be broken into smaller chunks that can be shared and reused among other controllers.
 
 Controllers should not worry about specific data models or the endpoint they access. This allows them to be modular. If a database is changed out for a Restful API, or a database schema or authentication, changes, that should be captured in the Model.
-
-Controllers should be written using Object Oriented Programming (Classes).
 
 ### Models directory
 
@@ -141,7 +141,9 @@ The `models` directory contain Data Access Objects (DAO) and fetch methods. "Dat
 
 Models should be developed using OOP (Object Oriented Programming) and well thought out so that they can be easily replaced. If a database connection and schema is swapped out for a Restful API endpoint, the downstream controller should not know the difference.
 
-Models use Data Access Objects to perform the authentication, basic parameters, and connections. Models can then transform the data returned into a usable format (parse XML, change an array to an keyed object, etc) for the controller. (Similar to views, but for data).
+Models use Data Access Objects to perform the authentication, basic parameters, and connections. Models can then transform the data returned into a usable format (parse XML, change an array to an keyed object, group a set of one dimensional database records into an object utilizing arrays, etc) for the controller. (Similar to views, but for data).
+
+Business logic should be reserved for the controller.
 
 ### Config directory
 
