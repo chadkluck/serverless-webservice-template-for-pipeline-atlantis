@@ -16,7 +16,7 @@ https://{your-api-gateway-domain}/demo-test/?id=22
 
 ## Prerequisite
 
-This application was created to be deployed by the 'Atlantis Pipeline with CloudFormation' developed by Chad Leigh Kluck. Do not proceed unless you have set up an 'Atlantis pipeline' for the application in CloudFormation. The pipeline will set up all IAM permissions and introduce you to variables and concepts used within.
+This application may be deployed using [Serverless Deploy Pipeline Atlantis](https://github.com/chadkluck/serverless-deploy-pipeline-atlantis), a template for creating an AWS CodePipeline. The pipeline will set up all IAM permissions and introduce you to parameters and concepts used within and perform a commit-based deploys from CodeCommit.
 
 It is recommended that you follow the tutorials in the 'Atlantis pipeline starter template' README so that you have an understanding of CloudFormation, CodeBuild, CodeDeploy, CodePipeline, and other AWS Services.
 
@@ -24,8 +24,8 @@ Atlantis was developed as a starter template with training in mind and is not on
 
 This template can be considered Course #3 of Chad's Steps to Serverless Application Deployment, a set of templates and walk-throughs to help developers learn and deploy serverless while coming away with usable code for their projects. Each of the walk-throughs are available on GitHub.
 
-1. Serverless Introduction (Creating a simple prediction API via AWS CLI using SAM)
-2. Deployment Pipelines (Atlantis Pipeline with CloudFormation)
+1. [Serverless Introduction](https://github.com/chadkluck/serverless-sam-8ball-example) (Creating a simple prediction API via AWS CLI using SAM)
+2. [Deployment Pipelines](https://github.com/chadkluck/serverless-deploy-pipeline-atlantis) (Atlantis Pipeline with CloudFormation)
 3. Creating a Webservice (this)
 
 ## Installation
@@ -35,11 +35,8 @@ Once you have created a pipeline using Atlantis (see prerequisite) and you have 
 For the initial install you will need to complete the following:
 
 1. Install npm modules
-2. Update deploy files
-    - template-configuration.json (UserAgent, ApiPathBase, and Tags)
-    - template.yml (just description to start)
-3. Deploy the demo as is (you can later obtain an api key from openweathermap if you want weather)
-4. Code your app (once you have a firm understanding of the template code)
+2. Deploy the demo as is (you can later obtain an api key from openweathermap if you want weather)
+3. Update and experiment with your app
 
 ### 1. Install npm modules
 
@@ -48,61 +45,27 @@ This project uses the npm [@chadkluck/cache-data](https://www.npmjs.com/package/
 There is already a package.json file so you just need to run the `npm install` command from within the `application-infrastructure/app` directory:
 
 ```bash
-cd app
+cd application-infrastructure/app
 npm install
 ```
 
-### 2. Update Deploy Files
+### 2. Deploy demo
 
-For deploys, the majority of parameters are set using the pipeline. However, there are a few minor adjustments to be made per application:
+You will need to create a branch in your repository that is monitored by AWS CodePipeline. Once you commit code to the branch, it should be picked up by CodePipeline and deployed. 
 
-#### template-configuration.json
+The application will deploy as-is. Check the Outputs section of the infrastructure stack to get the API endpoint you can use to test the deployment.
 
-- `Parameters` : you can add any parameter settings here. Note you have use of various Variables such as `$STAGE_ID$` and `$PROJECT_ID$`
-  - `UserAgent`: You can modify this for unique identification when checking remote logs. You can always add `$STAGE_ID$` to identify the stage
-  - `ApiPathBase`: If left out, the default is `api` or `Prod` (for CodeStar). Since the auto url is random, you can give a quick name and stage to help identify the application and endpoint. Such as `course-ws-$STAGE_ID$`
+After a successful deploy you will notice that weather is not set.
 
-For the tag section of template-configuration.json, leave ProjectStackType, CodeCommitRepo, ProjectStackProjectID, ProjectStackProjectStageID, stage, and env alone. Those are used by the pipeline. However, you may add any additional tags used by your organization.
-
-#### template.yml
-
-Around line 8 update `Description` to fit your needs.
-
-### 3. Deploy demo
-
-You will need to create a branch in your repository that is monitored by a Project Stack Pipeline. Project Stacks creates a deploy pipeline using CloudFormation that automates the deploy process.
-
-To include the weather api in the demo, sign up for a free account and obtain an api key from  an api key from openweathermap.com and store it in `parameterstorepath/apikey_weather` as a secret. Note that you can obtain the `parameterstorepath` by referring to **SSMParameterStore** in the **Outputs** section of the CloudFormation infrastructure stack used by this application.
+To include the weather api in the demo, sign up for a free account and obtain an api key from  an api key from openweathermap.com and store it in `{parameterstorepath}/Weather_APIKey` as a secret. Note that you can obtain the `parameterstorepath` by referring to **SSMParameterStore** in the **Outputs** section of the CloudFormation infrastructure stack used by this application.
 
 Go ahead and deploy the template as-is to make sure it works up to this point. Once deployed, the endpoint URL for this application is also listed in the **Outputs** section of the CloudFormation infrastructure stack used by this application.
 
 When you call the endpoint it should display a prediction, a recommended game, and the current weather conditions in Chicago.
 
-### 4. Code your app
+### 3. Code your app
 
-In the app folder you will find the following:
-
-- custom/
-  - settings.json
-- node_modules/
-- classes.js
-- index.js
-
-index.js, classes.js, and custom/ may be modified to suit your needs.
-
-You are able to create your own Data Access Objects if `endpoint` doesn't suit your needs. More on that later.
-
-#### index.js
-
-The script file index.js contains the handler and main application logic. The template demonstrates collecting data from 3 endpoints (prediction, games, and weather) and combining them into a final API response. Caching for the 3 endpoints is achieved using DynamoDb and S3 by sending requests through dao-cache.js's `CacheableDataAccess` class.
-
-The 3 endpoints are processed simultaneously using async "task" functions. A connection object along with a cache settings object are sent to `CacheableDataAccess` for processing. Once all three tasks are complete the script assembles them into a final response and returns it to the handler which in turn passes the response back to API Gateway.
-
-There are `try`/`catch` blocks that handle any errors. Depending on the severity the script may return an error or empty values. How it reacts is up to you.
-
-- To log debugging outputs make sure the log level is set to 5 and the expiration date has not passed in the line `tools.DebugAndLog.setLogLevel(5, "2021-10-30T04:59:59Z");` near the top of the script. This line should be commented out before moving to production otherwise it will produce a warning in the logs.
-- Error logging is available using `tools.DebugAndLog.debug(string, [object])` or `DebugAndLog.warn()`, `DebugAndLog.log()`, `DebugAndLog.msg()`
-- Timer logging is available using `const myTimer = new tools.Timer(timerName, true);` and then stopping using `myTimer.stop()`
+In the `application-infrastructure` folder you will find a [Folder Structure README](./application-infrastructure/README-Folder-Structure.md) that quickly explains the files and organizational structure of the application. The app folder is already set-up to use the "Model-View-Controller" pattern.
 
 ##### Initialization and Configuration
 
@@ -133,7 +96,7 @@ let params = await this._initParameters(
 );
 ```
 
-Note that an encrpytion key is used for cached data marked as `private` and an encrpytion key unique to the application is generated and stored for you on first deploy. If you ever need to change the encryption key, just delete it from the parameter store and re-deploy the application. (The key check and generation is performed in the buildspec utilizing the tools/generate-put-keys.sh script.)
+Note that an encryption key is used for cached data marked as `private` and an encryption key unique to the application is generated and stored for you on first deploy. If you ever need to change the encryption key, just delete it from the parameter store and re-deploy the application. (The key check and generation is performed in the buildspec utilizing the tools/generate-put-keys.sh script.)
 
 You can add additional keys to the parameter store and they will automatically be brought in as long as they are saved on the application's SSM parameter store path. You can access all the keys for an app using `params.app.varname` within the Config class. You'll need to expose it to the rest of the application using a getter if necessary. There are methods to access other parameter store paths that you application may have access to. Just create an additional object with a different group name and path.
 
