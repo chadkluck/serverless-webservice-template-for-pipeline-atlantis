@@ -95,6 +95,9 @@ class Config extends Utils.tools._ConfigSuperClass {
 				
 			try {
 
+				// /* This is the old method of gathering params from SSM parameter store
+				// to learn more see: docs/README-Config-Init-Param-Store-Alternative */
+				//
 				// let params = await this._initParameters(
 				// 	[
 				// 		{

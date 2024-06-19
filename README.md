@@ -1,7 +1,5 @@
 # Serverless Web Service Template for Atlantis Pipeline
 
-> Note: As of June 2024 this document as well as tutorials are undergoing revisions and may be inaccurate. Updates should be completed by the end of July 2024
-
 A Web Service template for a serverless Node.js application using AWS Lambda and API Gateway that provides access to external remote api endpoints, caching using AWS DynamoDb, and S3, and stored secrets utilizing SSM Parameter Store.
 
 Using this as a template for your API Gateway/Lambda applications will start you off with a secure way to manage secret keys needed by your application, an internal, secure and self-managed caching system, asynchronous task management for accessing several datasources simultaneously for faster processing.
@@ -67,9 +65,40 @@ When you call the endpoint it should display a prediction, a recommended game, a
 
 In the `application-infrastructure` folder you will find a [Folder Structure README](./application-infrastructure/README-Folder-Structure.md) that quickly explains the files and organizational structure of the application. The app folder is already set-up to use the "Model-View-Controller" pattern.
 
-##### Initialization and Configuration
+If you have not yet reviewed documentation relating to the pipeline, basic application infrastructure (API Gateway, Lambda, IAM execution role), and [CloudFormation parameters used](https://github.com/chadkluck/serverless-deploy-pipeline-atlantis/blob/main/docs/Pipeline-Parameters-Reference.md), please do so from the [Atlantis pipeline repository](https://github.com/chadkluck/serverless-deploy-pipeline-atlantis) on GitHub.
 
-The variable `CONFIG` is made available during initialization of the application. This occurs during a Lambda Cold Start. The `CONFIG` variable begins initialization at the beginning of the script which is only ran after a cold boot. It is not ran on subsequent executions of the handler. The handler does check to see if the CONFIG variable is finished initializing before continuing. It is typically a 500ms wait after a cold start. After it has been initialized on first run the check and wait is instantaneous and does not halt execution of the handler.
+The application also uses the `@chadkluck/cache-data` npm package. The package handles not only caching, but contains many tools such as Logging, Timers, initialization, and utility classes and objects. You can run your requests through the Connection and Cache objects to utilize caching for any data model you define. More about this package can be found on the [Cache-Data npm page](https://www.npmjs.com/package/@chadkluck/cache-data).
+
+After reviewing the documentation for Atlantis and Cache-Data you should have a better understanding of the base functionality and code used by this sample application.
+
+#### Initialization and Configuration
+
+The variable `Config` is made available during initialization of the application. This occurs during a Lambda Cold Start. The `Config` variable begins initialization at the beginning of the script which is only ran after a cold boot. It is not ran on subsequent executions of the handler. The handler checks to see if the `Config` variable is finished initializing and primed before continuing. It is typically a 500ms wait after a cold start. After it has been initialized on first run the check and wait is instantaneous and does not halt execution of the handler.
+
+```js
+const { Config } = require("./config/index.js");
+
+/* initialize the Config */
+Config.init(); // we will await completion in the handler
+
+exports.handler = async (event, context, callback) => {
+  	/* wait for CONFIG to be settled as we need it before continuing. */
+		await Config.promise(); // makes sure general config init is complete
+		await Config.prime(); // makes sure all prime tasks (tasks that need to be completed AFTER init but BEFORE handler) are completed
+
+    // .... your code
+};
+```
+
+You can define in the `Config` class (found in `app/config/index.js` and discussed later) what happens during `init` and `prime`.
+
+##### Config.promise() vs Config.prime()
+
+`Config.promise()` relates to whether `Config.init()` has resolved. `Config.init()` is only executed during a cold start. Data, services, and connections created during the init are not expected to change between deployments. This includes loading in general configuration files and starting the SSM Parameter and Secret Manager service. `init` starts execution and `promise` returns the promise you can await for.
+
+`Config.prime()` is a per-handler initialization. This contains data, services, and connections that may change between deployments but is shared between handler executions. This may include secrets from stores that may change but are cached by the SSM Parameter and Secret Manager service. `prime` both executes and returns the promise you can await for.
+
+> Note: As of June 2024 the following documentation and tutorials are undergoing revisions and may be inaccurate. Updates should be completed by the end of August 2024. Refer to documentation provided by [Atlantis pipeline](https://github.com/chadkluck/serverless-deploy-pipeline-atlantis) and [Cache-Data npm](https://www.npmjs.com/package/@chadkluck/cache-data) for additional, up-to-date information.
 
 Settings come in three parts which you may reorder as necessary.
 
@@ -81,20 +110,11 @@ Settings come in three parts which you may reorder as necessary.
 
 NOTE: Depending on your needs, you may need to reorganize the order of Parameter Store access and Settings.json loading. If you will be using values from settings to populate additional parameter store locations you'll of course need to load settings.json first.
 
-###### SSM Parameter Store
+###### SSM Parameter Store and AWS Secrets Manager
 
-SSM Parameter Store should be used for any secrets. All api, encrpytion keys and passwords should be stored in SSM Parameter Store and NOT settings.json.
+SSM Parameter Store or AWS Secrets Manager should be used for any secrets. All api, encryption keys and passwords should be stored in SSM Parameter Store and NOT settings.json.
 
-```js
-let params = await this._initParameters(
-	[
-		{
-			"group": "app", // so we can do params.app.weatherapikey later
-			"path": process.env.paramStorePath // Lambda environment variable
-		}
-	]
-);
-```
+The
 
 Note that an encryption key is used for cached data marked as `private` and an encryption key unique to the application is generated and stored for you on first deploy. If you ever need to change the encryption key, just delete it from the parameter store and re-deploy the application. (The key check and generation is performed in the buildspec utilizing the tools/generate-put-keys.sh script.)
 
@@ -117,7 +137,7 @@ let params = await this._initParameters(
 );
 ```
 
-Note that `params` is a local varible to Config during initialization. It may be used to configure other settings during initialization only. If you need to expose certain values to your application you will need to add a getter. Be careful what you expose to your application.
+Note that `params` is a local variable to Config during initialization. It may be used to configure other settings during initialization only. If you need to expose certain values to your application you will need to add a getter. Be careful what you expose to your application.
 
 ###### Settings
 

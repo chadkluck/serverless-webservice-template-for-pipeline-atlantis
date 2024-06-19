@@ -31,7 +31,7 @@ const GenericJsonResponse = require("./views/json.status.generic.js")
 const coldStartInitTimer = new Utils.tools.Timer("coldStartTimer", true);
 
 /* initialize the Config */
-Config.init(); // we need to await completion in the handler
+Config.init(); // we will await completion in the handler
 
 /**
  * Lambda function handler
@@ -47,8 +47,8 @@ exports.handler = async (event, context, callback) => {
 	try {
 
 		/* wait for CONFIG to be settled as we need it before continuing. */
-		await Config.promise();
-		await Config.prime();
+		await Config.promise(); // makes sure general config init is complete
+		await Config.prime(); // makes sure all prime tasks (tasks that need to be completed AFTER init but BEFORE handler) are completed
 
 		/* If the cold start init timer is running, stop it and log. This won't run again until next cold start */
 		if (coldStartInitTimer.isRunning()) { Utils.tools.DebugAndLog.log(coldStartInitTimer.stop(),"COLDSTART"); }
