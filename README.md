@@ -33,8 +33,9 @@ Once you have created a pipeline using Atlantis (see prerequisite) and you have 
 For the initial install you will need to complete the following:
 
 1. Install npm modules
-2. Deploy the demo as is (you can later obtain an api key from openweathermap if you want weather)
-3. Update and experiment with your app
+2. Update Lambda Layer access
+3. Deploy the demo as is (you can later obtain an api key from openweathermap if you want weather)
+4. Update and experiment with your app
 
 ### 1. Install npm modules
 
@@ -47,7 +48,28 @@ cd application-infrastructure/app
 npm install
 ```
 
-### 2. Deploy demo
+### 2. Update Lambda Layers in template.yml
+
+The Lambda function uses 2 layers provided by AWS: `LambdaInsightsExtension` and `AWS-Parameters-and-Secrets-Lambda-Extension`. Depending on what region you deploy your application, you will need to update the Account ID the layer will be pulled from (Account IDs may be the same or differ by region). Refer to the webpage listed in the comment for each extension for a table with the appropriate information. Also be sure to check the Layer Version number (the number after the final `:` in the arn).
+
+For example, for Region `us-east-1` LambdaInsightsExtension uses account `580247275435` and AWS-Parameters-and-Secrets-Lambda-Extension uses account `177933569100`. Whereas `us-east-2` will use `580247275435` and `590474943231 ` respectively.
+
+Update  the Account ID in `/application-infrastructure/template.yml` (and version) under the Lambda properties based on the tables listed on the linked pages in the comments:
+
+```yaml
+  # -- Lambda Function --
+  AppFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:52" # Update Acct and version based on region: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Lambda-Insights-extension-versionsx86-64.html
+        - !Sub "arn:aws:lambda:${AWS::Region}:590474943231:layer:AWS-Parameters-and-Secrets-Lambda-Extension:11" # Update Acct and version based on region: https://docs.aws.amazon.com/systems-manager/latest/userguide/ps-integration-lambda-extensions.html#ps-integration-lambda-extensions-add
+
+```
+
+Commit your changes to your repository.
+
+### 3. Deploy demo
 
 You will need to create a branch in your repository that is monitored by AWS CodePipeline. Once you commit code to the branch, it should be picked up by CodePipeline and deployed. 
 
@@ -61,7 +83,7 @@ Go ahead and deploy the template as-is to make sure it works up to this point. O
 
 When you call the endpoint it should display a prediction, a recommended game, and the current weather conditions in Chicago.
 
-### 3. Code your app
+### 4. Code your app
 
 In the `application-infrastructure` folder you will find a [Folder Structure README](./application-infrastructure/README-Folder-Structure.md) that quickly explains the files and organizational structure of the application. The app folder is already set-up to use the "Model-View-Controller" pattern.
 
