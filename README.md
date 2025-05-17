@@ -1,5 +1,7 @@
 # Serverless Web Service Template for Atlantis Pipeline
 
+> This project has been replaced by the [Atlantis CloudFormation Template Repository](https://github.com/63Klabs/atlantis-cfn-template-repo-for-serverless-deployments), [Atlantis SAM Configuration Repository](https://github.com/63Klabs/atlantis-cfn-configuration-repo-for-serverless-deployments), and [starter applications and tutorials](https://github.com/63Klabs/atlantis-tutorials) available from my [63Klabs](https://github.com/63klabs) projects.
+
 A Web Service template for a serverless Node.js application using AWS Lambda and API Gateway that provides access to external remote api endpoints, caching using AWS DynamoDb, and S3, and stored secrets utilizing SSM Parameter Store.
 
 Using this as a template for your API Gateway/Lambda applications will start you off with a secure way to manage secret keys needed by your application, an internal, secure and self-managed caching system, asynchronous task management for accessing several datasources simultaneously for faster processing.
